@@ -35,3 +35,20 @@ class ContextModule(nn.Module):
         x = x + residual
         
         return x
+
+class DownsamplingModule(nn.Module):
+    """
+    Down sample (the gold blocks in the paper's diagram)
+    Just a 3x3 conv with 2 stride
+    """
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2)
+        self.act = nn.LeakyReLU(0.01, inplace=True)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.act(x)
+
+        return x
