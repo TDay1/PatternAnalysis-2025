@@ -52,6 +52,27 @@ class DownsamplingModule(nn.Module):
         x = self.act(x)
 
         return x
+
+
+class UpsamplingModule(nn.Module):
+    """
+    From the paper: "first upsampling the low resolution feature maps, which is done by means of a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution that halves the number of feature maps" [CITE]
+    It is the orange blocks in fig. 1 from the improved unet paper.
+    TODO: unsure how well this will work compared to transposed convs. change this if bad results.
+    """
+    def __init__(self, in_channels):
+        super().__init__()
+        
+        self.upsample = nn.Upsample(scale_factor=2)
+        self.conv = nn.Conv2d(in_channels, in_channels // 2, kernel_size=3)
+        self.act = nn.LeakyReLU(0.01, inplace=True)
+
+    def forward(self, x):
+        x = self.upsample(x)
+        x = self.conv(x)
+        x = self.act(x)
+
+        return x
         
 
 class ImprovedUNet(nn.Module):
@@ -61,7 +82,7 @@ class ImprovedUNet(nn.Module):
 
         filter_sizes = [16, 32, 64, 128, 256]
         
-        # layer naming scheme: `{module name}_{level}` where 0 is the first level
+        # layer naming convention: `{module name}_{level}` where 0 is the first level
         # Levels are based on where the layer is in the diagram (Improved unet paper, fig. 1).
 
         # Encoder
