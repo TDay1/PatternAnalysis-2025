@@ -25,6 +25,6 @@ class DiceLoss(nn.Module):
         dice_sum = dice_per_class.sum(dim=1)
 
         # Modifier out front of loss equation (6 classes, -2 constant from paper)
-        loss = (-2)/6 * dice_sum
+        loss = (-2)/6 * dice_sum.mean(dim=0)
 
         return loss
