@@ -4,15 +4,17 @@ from tqdm import tqdm
 
 # The below two functions (to_channels and load_data_2D) are based on the
 # sample code provided in the assignment task sheet (appendix B)
+# The to_channels function was modified such that a the number of channels
+# could be manually specified, which avoids a bug when some segmentations
+# contain a lesser number of segmentations than others.
 
-
-def to_channels (arr: np.ndarray, dtype=np.uint8) -> np.ndarray:
+def to_channels(arr: np.ndarray, num_channels: int = 6, dtype=np.uint8) -> np.ndarray:
     channels = np.unique(arr)
-    res = np.zeros(arr.shape + (len(channels),), dtype=dtype )
+    res = np.zeros(arr.shape + (num_channels,), dtype=dtype)
     
     for c in channels:
         c = int(c)
-        res [..., c:c +1][arr == c] = 1
+        res[..., c][arr == c] = 1
     
     return res
 
