@@ -47,7 +47,7 @@ def load_data_2D(imageNames, normImage=False, categorical=False , dtype=np.float
         rows, cols = first_case.shape
         images = np.zeros((num ,rows, cols), dtype=dtype)
     
-    for i, inName in enumerate(tqdm(imageNames)):
+    for i, inName in enumerate(imageNames):
         niftiImage = nib.load(inName)
         inImage = niftiImage.get_fdata(caching='unchanged') # read disk only
         affine = niftiImage.affine
@@ -81,18 +81,14 @@ class HipMRIDataset(Dataset):
         self.img_files = sorted(glob.glob(os.path.join(img_dir, "*.nii.gz")))
         self.seg_files = sorted(glob.glob(os.path.join(seg_dir, "*.nii.gz")))
 
-        self.images = load_data_2D(self.img_files , normImage = True , categorical = False)
-        self.segs = load_data_2D(self.seg_files , normImage = False , categorical = True)
-
-        # Reshape images and segmentations to be in expected shape
-        self.images = self.images[:, None, :, :]
-        self.segs = np.transpose(self.segs, (0, 3, 1, 2))
-
     def __len__(self):
-        return self.images.shape[0]
+        return len(self.img_files)
 
     def __getitem__(self, idx):
-        x = self.images[idx]
-        y = self.segs[idx]
+        img = load_data_2D([self.img_files[idx]] , normImage = True , categorical = False)
+        seg = load_data_2D([self.seg_files[idx]], normImage = False , categorical = True)
+
+        x = img[0, None, :, :]
+        y = np.transpose(seg[0], (2, 0, 1))
         
         return x, y
