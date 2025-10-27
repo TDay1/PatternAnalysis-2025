@@ -19,7 +19,7 @@ class DiceLoss(nn.Module):
         union = u_flat.sum(dim=2) + v_flat.sum(dim=2)
 
         # Evaluate fraction
-        dice_per_class = intersection / union
+        dice_per_class = intersection / (union + 1e-8)
         
         # Big sigma in front of fraction
         dice_sum = dice_per_class.sum(dim=1)
