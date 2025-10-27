@@ -60,41 +60,42 @@ class ImprovedUNet(nn.Module):
         self.classes = 6
 
         filter_sizes = [16, 32, 64, 128, 256]
-
-        # input conv (black box on paper diagram)
-        self.initial_conv = nn.Conv2d(1, filter_sizes[0], kernel_size=3, padding=1)
         
+        # layer naming scheme: `{module name}_{level}` where 0 is the first level
+        # Levels are based on where the layer is in the diagram (Improved unet paper, fig. 1).
+
         # Encoder
-        self.context0 = ContextModule(filter_sizes[0])
+        self.initial_conv = nn.Conv2d(1, filter_sizes[0], kernel_size=3, padding=1)
+        self.context_0 = ContextModule(filter_sizes[0])
 
-        self.downsample0 = DownsamplingModule(filter_sizes[0], filter_sizes[1])
-        self.context1 = ContextModule(filter_sizes[1])
+        self.downsample_1 = DownsamplingModule(filter_sizes[0], filter_sizes[1])
+        self.context_1 = ContextModule(filter_sizes[1])
         
-        self.downsample1 = DownsamplingModule(filter_sizes[1], filter_sizes[2])
-        self.context2 = ContextModule(filter_sizes[2])
+        self.downsample_2 = DownsamplingModule(filter_sizes[1], filter_sizes[2])
+        self.context_2 = ContextModule(filter_sizes[2])
 
-        self.downsample2 = DownsamplingModule(filter_sizes[2], filter_sizes[3])
-        self.context3 = ContextModule(filter_sizes[3])
+        self.downsample_3 = DownsamplingModule(filter_sizes[2], filter_sizes[3])
+        self.context_3 = ContextModule(filter_sizes[3])
 
-        self.downsample3 = DownsamplingModule(filter_sizes[3], filter_sizes[4])
-        self.context4 = ContextModule(filter_sizes[4])
+        self.downsample_4 = DownsamplingModule(filter_sizes[3], filter_sizes[4])
+        self.context_4 = ContextModule(filter_sizes[4])
 
     def forward(self, x):
-        x = self.initial_conv(x)
 
         # encoder
-        skip0 = self.context0(x)
+        x = self.initial_conv(x)
+        skip0 = self.context_0(x)
 
-        x = self.downsample0(skip0)
-        skip1 = self.context1(x)
+        x = self.downsample_1(skip0)
+        skip1 = self.context_1(x)
 
-        x = self.downsample1(skip1)
-        skip2 = self.context2(x)
+        x = self.downsample_2(skip1)
+        skip2 = self.context_2(x)
 
-        x = self.downsample2(skip2)
-        skip3 = self.context3(x)
+        x = self.downsample_3(skip2)
+        skip3 = self.context_3(x)
 
-        x = self.downsample3(skip3)
-        x = self.context4(x)
+        x = self.downsample_4(skip3)
+        x = self.context_4(x)
 
         return x
