@@ -73,7 +73,7 @@ class UpsamplingModule(nn.Module):
         x = self.act(x)
 
         return x
-        
+    
 
 class LocalisationModule(nn.Module):
     """
@@ -98,6 +98,20 @@ class LocalisationModule(nn.Module):
 
         return x
 
+class SegmentationLayer(nn.Module):
+    """
+    1x1 conv for the paper's "deep supervisionb" mechanism
+    Dark green blocks on the diagram
+    """
+    def __init__(self, in_channels, seg_class_count):
+        super().__init__()
+        self.conv = nn.Conv2d(in_channels, seg_class_count, kernel_size=1)
+
+    def forward(self, x):
+        x = self.conv(x)
+        
+        return x
+        
 
 class ImprovedUNet(nn.Module):
     def __init__(self):
