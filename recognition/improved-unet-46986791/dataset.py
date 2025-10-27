@@ -1,6 +1,9 @@
 import numpy as np
 import nibabel as nib
 from tqdm import tqdm
+import os
+import glob
+from torch.utils.data import Dataset
 
 # The below two functions (to_channels and load_data_2D) are based on the
 # sample code provided in the assignment task sheet (appendix B)
@@ -71,3 +74,25 @@ def load_data_2D(imageNames, normImage=False, categorical=False , dtype=np.float
         return images , affines
     else:
         return images
+    
+
+class HipMRIDataset(Dataset):
+    def __init__(self, img_dir, seg_dir):
+        self.img_files = sorted(glob.glob(os.path.join(img_dir, "*.nii.gz")))
+        self.seg_files = sorted(glob.glob(os.path.join(seg_dir, "*.nii.gz")))
+
+        self.images = load_data_2D(self.img_files , normImage = True , categorical = False)
+        self.segs = load_data_2D(self.seg_files , normImage = False , categorical = True)
+
+        # Reshape images and segmentations to be in expected shape
+        self.images = self.images[:, None, :, :]
+        self.segs = np.transpose(self.segs, (0, 3, 1, 2))
+
+    def __len__(self):
+        return self.images.shape[0]
+
+    def __getitem__(self, idx):
+        x = self.images[idx]
+        y = self.segs[idx]
+        
+        return x, y
