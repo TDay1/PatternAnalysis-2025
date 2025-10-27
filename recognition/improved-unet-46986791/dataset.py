@@ -1,9 +1,9 @@
 import numpy as np
 import nibabel as nib
-from tqdm import tqdm
 import os
 import glob
 from torch.utils.data import Dataset
+from scipy.ndimage import zoom
 
 # The below two functions (to_channels and load_data_2D) are based on the
 # sample code provided in the assignment task sheet (appendix B)
@@ -87,6 +87,14 @@ class HipMRIDataset(Dataset):
     def __getitem__(self, idx):
         img = load_data_2D([self.img_files[idx]] , normImage = True , categorical = False)
         seg = load_data_2D([self.seg_files[idx]], normImage = False , categorical = True)
+
+        # if our image isn't (256, 128), resize it.
+        if img.shape[1:] != (256, 128):
+            img_zoom_ratios = (1, 256/img.shape[1], 128 / img.shape[2])
+            img = zoom(img, img_zoom_ratios, order=1)
+
+            seg_zoom_ratios = (1, 256/seg.shape[1], 128 / seg.shape[2], 1)
+            seg = zoom(seg, seg_zoom_ratios, order=0)
 
         x = img[0, None, :, :]
         y = np.transpose(seg[0], (2, 0, 1))
