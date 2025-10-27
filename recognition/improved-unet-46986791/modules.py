@@ -57,7 +57,7 @@ class DownsamplingModule(nn.Module):
 class UpsamplingModule(nn.Module):
     """
     From the paper: "first upsampling the low resolution feature maps, which is done by means of a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution that halves the number of feature maps" [CITE]
-    It is the orange blocks in fig. 1 from the improved unet paper.
+    It is the blue blocks in fig. 1 from the improved unet paper.
     TODO: unsure how well this will work compared to transposed convs. change this if bad results.
     """
     def __init__(self, in_channels):
@@ -74,6 +74,30 @@ class UpsamplingModule(nn.Module):
 
         return x
         
+
+class LocalisationModule(nn.Module):
+    """
+    implementation of the localisation module from the paper (fig. 1 orange blocks).
+    From the paper: "A localization module consists of a 3x3x3 convolution followed by a 1x1x1 convolution that halves the number of feature maps" [cite]
+    """
+    def __init__(self, in_channels):
+        super().__init__()
+
+        self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size=3)
+        self.act1 = nn.LeakyReLU(0.01, inplace=True)
+
+        self.conv2 = nn.Conv2d(in_channels, in_channels // 2, kernel_size=1)
+        self.act1 = nn.LeakyReLU(0.01, inplace=True)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.act1(x)
+
+        x = self.conv2(x)
+        x = self.act2(x)
+
+        return x
+
 
 class ImprovedUNet(nn.Module):
     def __init__(self):
