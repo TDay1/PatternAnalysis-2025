@@ -42,9 +42,22 @@ def per_class_score_dice(u, v):
         u_k = (u == k).float()
         v_k = (v == k).float()
 
-        intersection = (u_k * v_k).sum()
-        union = u_k.sum() + v_k.sum()
+        # Don't sum over batch, only over h and w.
+        intersection = (u_k * v_k).sum(dim=(1, 2))
+        union = u_k.sum(dim=(1, 2)) + v_k.sum(dim=(1, 2))
 
-        dice_scores[k] = (2.0 * intersection) / (union + 1e-8)
+        dice_per_image = (2.0 * intersection) / (union + 1e-8)
+
+        # If an image doesn't have a class, we don't want to incorrectly assign a 0 score
+        # as this will drag the average down, even though the model is not incorrect
+        # Rather, we should just not include it in the average
+        gt_has_class = v_k.sum(dim=(1, 2)) > 0
+        
+        if gt_has_class.any():
+            dice_scores[k] = dice_per_image[gt_has_class].mean()
+        else:
+            # edge case for when a class doesn't appear in a batch
+            # rare but possible since we shuffle our batches)
+            dice_scores[k] = float('nan')
 
     return dice_scores
