@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torchvision.transforms import v2
 
 class DiceLoss(nn.Module):
     def __init__(self):
@@ -61,3 +62,20 @@ def per_class_score_dice(u, v):
             dice_scores[k] = float('nan')
 
     return dice_scores
+
+def build_transforms():
+    # Augmentations based on those described in the paper.
+    # Note: They don't give parameters for the augments they used, so I used
+    # """"visual analysis"""" to determine reasonable ones
+    # Also note: The original paper is for 3D data and we are working with 2D
+    # data, so there are minor differences
+
+    transforms = v2.Compose([
+        # Geometry-based transforms
+        v2.RandomVerticalFlip(p=0.5), # since the images are from the top looking down, vertical flip makes more sense than horizontal. (because the body is symmetric on the horizontal axis)
+        v2.ElasticTransform(alpha=75.0, sigma=10.0), # Values of 75 and 10 were obtained visually. More than 100 started to look wacky
+        v2.RandomRotation(10),
+        v2.RandomAffine(degrees=0, scale=(0.9, 1.1)),
+    ])
+
+    return transforms
