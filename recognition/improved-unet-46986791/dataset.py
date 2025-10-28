@@ -4,6 +4,8 @@ import os
 import glob
 from torch.utils.data import Dataset
 from scipy.ndimage import zoom
+import torch
+from torchvision import tv_tensors
 
 # The below two functions (to_channels and load_data_2D) are based on the
 # sample code provided in the assignment task sheet (appendix B)
@@ -77,9 +79,10 @@ def load_data_2D(imageNames, normImage=False, categorical=False , dtype=np.float
     
 
 class HipMRIDataset(Dataset):
-    def __init__(self, img_dir, seg_dir):
+    def __init__(self, img_dir, seg_dir, transforms=None):
         self.img_files = sorted(glob.glob(os.path.join(img_dir, "*.nii.gz")))
         self.seg_files = sorted(glob.glob(os.path.join(seg_dir, "*.nii.gz")))
+        self.transforms = transforms
 
     def __len__(self):
         return len(self.img_files)
@@ -98,5 +101,14 @@ class HipMRIDataset(Dataset):
 
         x = img[0, None, :, :]
         y = np.transpose(seg[0], (2, 0, 1))
+
+        x = torch.from_numpy(x).float()
+        y = torch.from_numpy(y).float()
+
+        x = tv_tensors.Image(x)
+        y = tv_tensors.Mask(y)
+
+        if self.transforms is not None:
+            x, y = self.transforms(x, y)
         
         return x, y
