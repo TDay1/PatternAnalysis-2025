@@ -12,7 +12,7 @@ train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/
 train_loader = DataLoader(train_ds, batch_size=16, shuffle=True)
 
 val_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_validate', './data/keras_slices_data/keras_slices_seg_validate')
-val_loader = DataLoader(val_ds, batch_size=16, shuffle=True)
+val_loader = DataLoader(val_ds, batch_size=16, shuffle=False)
 
 model = ImprovedUNet().to(device)
 loss_fn = DiceLoss()
