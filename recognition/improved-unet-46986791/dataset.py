@@ -89,21 +89,21 @@ class HipMRIDataset(Dataset):
 
     def __getitem__(self, idx):
         img = load_data_2D([self.img_files[idx]] , normImage = True , categorical = False)
-        seg = load_data_2D([self.seg_files[idx]], normImage = False , categorical = True)
+        seg = load_data_2D([self.seg_files[idx]], normImage = False , categorical = False)
 
         # if our image isn't (256, 128), resize it.
         if img.shape[1:] != (256, 128):
             img_zoom_ratios = (1, 256/img.shape[1], 128 / img.shape[2])
             img = zoom(img, img_zoom_ratios, order=1)
 
-            seg_zoom_ratios = (1, 256/seg.shape[1], 128 / seg.shape[2], 1)
+            seg_zoom_ratios = (1, 256/seg.shape[1], 128 / seg.shape[2])
             seg = zoom(seg, seg_zoom_ratios, order=0)
 
         x = img[0, None, :, :]
-        y = np.transpose(seg[0], (2, 0, 1))
+        y = seg[0, None, :, :]
 
         x = torch.from_numpy(x).float()
-        y = torch.from_numpy(y).float()
+        y = torch.from_numpy(y).long()
 
         x = tv_tensors.Image(x)
         y = tv_tensors.Mask(y)
@@ -111,4 +111,6 @@ class HipMRIDataset(Dataset):
         if self.transforms is not None:
             x, y = self.transforms(x, y)
         
-        return x, y
+        y_onehot = torch.nn.functional.one_hot(y[0], num_classes=6)
+        y_onehot = y_onehot.permute(2, 0, 1).float()
+        return x, y_onehot
