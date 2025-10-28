@@ -43,9 +43,6 @@ for epoch in range(num_epochs):
 
         loading_bar.set_postfix({"Total loss": f"{train_loss:.4f}", "mean loss": f"{(train_loss/len(loss_history)):.4f}"})
 
-        if len(dice_class_scores) > 3:
-            break
-
     dice_class_scores = torch.stack(dice_class_scores)
     mean_dice_class_scores = torch.nanmean(dice_class_scores, dim=0)
     
