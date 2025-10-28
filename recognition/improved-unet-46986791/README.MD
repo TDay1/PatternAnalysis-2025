@@ -38,12 +38,12 @@ In addition to the 12,660 MRI scan images are corresponding ground-truth segment
 
 | Class ID | Label      | Example Ground Truth Segmentation    |
 | -------- | ---------- | ------------------------------------ |
-| 0        | Background | ![class 0 - Background example image](./images/readme-ground-truth-class-0.png | width=128) |
-| 1        | Body       | ![class 1 - Background example image](./images/readme-ground-truth-class-1.png | width=128) |
-| 2        | Bones      | ![class 2 - Background example image](./images/readme-ground-truth-class-2.png | width=128) |
-| 3        | Bladder    | ![class 3 - Background example image](./images/readme-ground-truth-class-3.png | width=128) |
-| 4        | Rectum     | ![class 4 - Background example image](./images/readme-ground-truth-class-4.png | width=128) |
-| 5        | Prostate   | ![class 5 - Background example image](./images/readme-ground-truth-class-5.png | width=128) |
+| 0        | Background | <img src="./images/readme-ground-truth-class-0.png" width="200"> |
+| 1        | Body       | <img src="./images/readme-ground-truth-class-1.png" width="200"> |
+| 2        | Bones      | <img src="./images/readme-ground-truth-class-2.png" width="200"> |
+| 3        | Bladder    | <img src="./images/readme-ground-truth-class-3.png" width="200"> |
+| 4        | Rectum     | <img src="./images/readme-ground-truth-class-4.png" width="200"> |
+| 5        | Prostate   | <img src="./images/readme-ground-truth-class-5.png" width="200"> |
 
-*Figure 2: A table demonstrating the classes from the HipMRI dataset [CITE]*
+*Figure 2: A table demonstrating the classes from the HipMRI dataset [CITE]. Classes 0, 1, 2, 3, and 5 example taken from train image 567, class 4 example taken from train image 582*
 
