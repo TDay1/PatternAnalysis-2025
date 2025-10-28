@@ -4,8 +4,11 @@ from dataset import HipMRIDataset
 from modules import ImprovedUNet
 from utils import DiceLoss, per_class_score_dice
 from tqdm.auto import tqdm
+import os
 
 device = 'mps'
+checkpoint_dir = './checkpoints'
+os.makedirs(checkpoint_dir, exist_ok=True)
 
 # data
 train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train')
@@ -79,3 +82,5 @@ for epoch in range(num_epochs):
     mean_dice_class_scores = torch.nanmean(dice_class_scores, dim=0)
     
     print(f"class-by-class mean dice score on validation set: {mean_dice_class_scores}")
+
+    torch.save(model.state_dict(), f'{checkpoint_dir}/epoch_{epoch}.pth')
