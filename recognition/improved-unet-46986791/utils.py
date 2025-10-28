@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 class DiceLoss(nn.Module):
@@ -28,3 +29,22 @@ class DiceLoss(nn.Module):
         loss = (-2)/6 * dice_sum.mean(dim=0)
 
         return loss
+    
+
+def per_class_score_dice(u, v):
+    classes = u.shape[1]
+    
+    u = torch.argmax(u, dim=1)
+    v = torch.argmax(v, dim=1)
+    
+    dice_scores = torch.zeros(classes)
+    for k in range(classes):
+        u_k = (u == k).float()
+        v_k = (v == k).float()
+
+        intersection = (u_k * v_k).sum()
+        union = u_k.sum() + v_k.sum()
+
+        dice_scores[k] = (2.0 * intersection) / (union + 1e-8)
+
+    return dice_scores
