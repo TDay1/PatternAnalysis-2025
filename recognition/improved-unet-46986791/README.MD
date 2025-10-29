@@ -6,25 +6,18 @@
 
 ---
 ## Introduction
-The aim of this project is to adapt the "Improved UNet" architecture [CITE] to segment 2D Magnetic Resonance Imaging (MRI) scans of human hips into six distinct classes. This report will explore the model architecture, training process, and results of this task. Success will be measured by all labels having a minimum Dice-Sørensen (Dice) coeffecient of 0.75.
+The aim of this project is to adapt the "Improved U-Net" architecture [CITE] to segment 2D Magnetic Resonance Imaging (MRI) scans of human hips into six distinct classes. This report will explore the model architecture, training process, and results of this task. Success will be measured by all labels having a minimum Dice-Sørensen (Dice) coeffecient of 0.75.
 
 ## Table of Contents
 
 0. [Introduction](#Introduction)
-1. [Table of Contents](#Table of Contents)
+1. [Table of Contents](#table-of-contents)
 2. [Dataset](#Dataset)
-3. Project Goal
-4. Architecture
-5. Data augmentation
-6. Training process
-7. Training Results
-8. Discussion
-9. Running instructions
-10. References
+3. [Introduction to Improved U-Net](#improved-u-net)
 
 
 ## Dataset
-As specified by the task sheet, the Improved UNet model will be trained on the HipMRI Study on prostate cancer [CITE] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11460, 660, and 540 respectively. 
+As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [CITE] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11460, 660, and 540 respectively. 
 
 | Split    | Number of samples | Purpose                                                                          |
 |----------|:-----------------:|----------------------------------------------------------------------------------|
@@ -54,7 +47,7 @@ In 2015, Ronneberger et al. [TODO CITE] published "U-Net: Convolutional Networks
 
 <p align="center">
     <img src="./images/original-unet-architecture.png" width="700">
-    </p>
+</p>
 
 
 <p align="center">
