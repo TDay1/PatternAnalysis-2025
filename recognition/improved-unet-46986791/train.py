@@ -7,10 +7,12 @@ from tqdm.auto import tqdm
 import os
 import pandas as pd
 import argparse
+from torch.optim.lr_scheduler import ExponentialLR
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-e", "--epochs", default=20, type=int)
 parser.add_argument("-lr", "--learning-rate", default=1e-3, type=float)
+parser.add_argument("-lrd", "--learning-rate-decay-gamma", default=0.985, type=float)
 parser.add_argument("-bs", "--batch-size", default=32, type=int)
 parser.add_argument("-o", "--output-dir", default="./checkpoints", type=str)
 parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu", type=str)
@@ -28,7 +30,8 @@ val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
 model = ImprovedUNet().to(args.device)
 loss_fn = DiceLoss()
-optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
+scheduler = ExponentialLR(optimiser, gamma=args.learning_rate_decay_gamma)
 
 # Logging
 train_csv_dir = f'./{args.output_dir}/train_metrics.csv'
@@ -66,7 +69,7 @@ for epoch in range(args.epochs):
         class_dice = per_class_score_dice(outputs, segs)
         dice_class_scores.append(class_dice)
 
-        loading_bar.set_postfix({"Total loss": f"{train_loss:.4f}", "mean loss": f"{(train_loss/len(loss_history)):.4f}"})
+        loading_bar.set_postfix({"Total loss": f"{train_loss:.4f}", "mean loss": f"{(train_loss/len(loss_history)):.4f}", "Current LR": scheduler.get_last_lr()[0]})
 
         # log batch
         train_metrics.append({
@@ -80,6 +83,7 @@ for epoch in range(args.epochs):
             'class_4_dice': class_dice[4].item(),
             'class_5_dice': class_dice[5].item(),
             'batch_mean_dice': class_dice.mean().item(),
+            'current_lr': scheduler.get_last_lr()[0],
         })
 
     pd.DataFrame(train_metrics).to_csv(train_csv_dir)
@@ -136,3 +140,5 @@ for epoch in range(args.epochs):
     pd.DataFrame(val_metrics).to_csv(val_csv_dir)
 
     torch.save(model.state_dict(), f'{args.output_dir}/epoch_{epoch}.pth')
+
+    scheduler.step()
