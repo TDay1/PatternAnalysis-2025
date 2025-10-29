@@ -23,10 +23,10 @@ os.makedirs(args.output_dir, exist_ok=True)
 # data
 transforms = build_transforms()
 train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train', transforms=transforms)
-train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_worker=12, pin_memory=(args.device == "cuda"))
+train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=12, pin_memory=(args.device == "cuda"))
 
 val_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_validate', './data/keras_slices_data/keras_slices_seg_validate')
-val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,  num_worker=4, pin_memory=(args.device == "cuda"))
+val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,  num_workers=4, pin_memory=(args.device == "cuda"))
 
 model = ImprovedUNet().to(args.device)
 loss_fn = DiceLoss()
