@@ -52,9 +52,14 @@ In addition to the 12,660 MRI scan images are corresponding ground-truth segment
 ### Background
 In 2015, Ronneberger et al. [TODO CITE] published "U-Net: Convolutional Networks for Biomedical Image Segmentation", which introduced the novel "U-Net" convolution neural network architecture. This architecture incorporated the idea of adding "skip connections" to the encoder-decoder architecture, enabling more precise segmentations.
 
-<img src="./images/original-unet-architecture.png" width="600">
+<p align="center">
+    <img src="./images/original-unet-architecture.png" width="700">
+    </p>
 
-*Figure 3: The original U-Net architecture. Diagram from the original paper [TODO CITE]*
+
+<p align="center">
+    <em>Figure 3: The original U-Net architecture. Diagram from the original paper [TODO CITE]</em>
+</p>
 
 The original U-Net's encoder consisted 5 levels, each using two 3x3 convolutions with an ReLU activation function. The decoder consisted of the same architecture, except it was mirrored, increasing the spatial feature using up-convolutions (transposed convolutions) and it also accepted the input from the skip connections at each level. 
 
@@ -62,17 +67,26 @@ The original U-Net's encoder consisted 5 levels, each using two 3x3 convolutions
 
 In 2018, Isensee et al. release an "Improved U-Net" paper [TODO: CITE], that build upon the work on Renneberger at al. to create a U-Net-like network that could operate on three-dimensional data and achieve improved state of the art accuracy. While the Improved U-Net paper was originally intended for three-dimensional data, as per the task description (project 3) this report will adapt it for two-dimensional data. Therefore, the following description of the architecture will be for a two-dimensional variation of the Improved U-Net paper, rather than the original three-dimensional architecture.
 
-<img src="./images/improved-unet-architecture.png" width="600">
+<p align="center">
+    <img src="./images/improved-unet-architecture.png" width="850">
+</p>
 
-*Figure 4: The Improved U-Net diagram, taken from the paper [TODO cite]*
+<p align="center">
+    <em>Figure 4: The Improved U-Net diagram, taken from the paper [TODO cite]</em>
+</p>
 
 #### Encoder
 The encoder section improved upon the original U-Net implementation by introducing context modules, which are based on pre-activation residual blocks introduced by by He et al. in "Identity Mappings in Deep Residual Networks" [TODO CITE:  https://arxiv.org/pdf/1603.05027]. The Context modules consist of two layers containing instance normalisation, LeakyReLU, and a convolution, with a dropout layer in-between. The residual is taken at the start of the block and summed to the output of the two layers.
 
 
-<img src="./images/context-module.svg" width="600">
+<p align="center">
+    <img src="./images/context-module.svg" width="850">
+</p>
 
-*Figure 5: Diagram of the context module from the Improve U-Net paper [TODO CITE]*
+<p align="center">
+    <em>Figure 5: Diagram of the context module from the Improve U-Net paper [TODO CITE]</em>
+</p>
+
 
 With the exception of the final layer, the output of each context module is saved to later be passed to the decoder through a skip connection before finally being downscaled using a 3x3 convolution with a stride of 2.
 
@@ -90,6 +104,9 @@ The original U-Net paper used a weighted cross-entropy loss function. They ratio
 
 Improved U-Net replaces this loss function with multiclass Dice loss. This loss function was chosen to address the high degree of class imbalance often observed in medical datasets. Because this loss function computes the overlap on a per-class basis before then averaging, all classes are equally weighted, thereby solving this issue.
 
-<img src="./images/loss-fn.png" width="200">
-
-*Figure 7: The multiclass DICE loss used in Improved U-Net*
+<p align="center">
+    <img src="./images/loss-fn.png" width="400">
+</p>
+<p align="center">
+    <em>Figure 7: The multiclass DICE loss used in Improved U-Net</em>
+</p>
