@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 from dataset import HipMRIDataset
 from modules import ImprovedUNet
-from utils import DiceLoss, per_class_score_dice
+from utils import DiceLoss, per_class_score_dice, build_transforms
 from tqdm.auto import tqdm
 import os
 import pandas as pd
@@ -12,7 +12,8 @@ checkpoint_dir = './checkpoints'
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 # data
-train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train')
+transforms = build_transforms()
+train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train', transforms=transforms)
 train_loader = DataLoader(train_ds, batch_size=16, shuffle=True)
 
 val_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_validate', './data/keras_slices_data/keras_slices_seg_validate')
