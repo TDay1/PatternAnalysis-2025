@@ -101,5 +101,51 @@ Improved U-Net replaces this loss function with multiclass Dice loss. This loss 
     <img src="./images/loss-fn.png" width="400">
 </p>
 <p align="center">
-    <em>Figure 7: The multiclass DICE loss used in Improved U-Net</em>
+    <em>Figure 6: The multiclass DICE loss used in Improved U-Net</em>
 </p>
+
+## Training
+  
+#### Original Training Setup
+In the Improved U-Net paper, the authors describe the following training setup:
+- Batch size 2
+- an initial learning rate of $5 \times 10^{-4}$, with exponential decay following the schedule $lr_{init} \cdot 0.985^{epoch}$
+- weight decal of $10^{-5}$
+- Adam optimiser
+- Extensive Augmentations
+
+Our training implementations will need to make reasonable deviations from the paper's original setup. This change is required because this implementation is focusing on two-dimensional data and because significantly more powerful GPUs have become available since the paper was authored in 2018.
+
+#### Data augmentations
+In the Improved U-Net paper [TODO cite] they made extensive use of augmentations applied on the fly during training. As such, in this implementation similar augmentations were used. The "transforms v2" API  within Pytorch TorchVision [TODO cite], as the transformations applied to the image and the segmentation mask must be the same, and the "transforms v2" API supports this use case. The following snippet shows the transforms used.
+
+```py
+transforms = v2.Compose([
+	v2.RandomVerticalFlip(p=0.5), 
+	v2.ElasticTransform(alpha=75.0, sigma=10.0),
+	v2.RandomRotation(10),
+	v2.RandomAffine(degrees=0, scale=(0.9, 1.1)),
+])
+```
+
+The parameters of the transforms were not given in the paper, and as such had to be derived manually. The parameters (shown in the snippet above) were determined through a process of visual inspection, selecting the largest possible augmentations that still appeared as if they could reasonably be real MRIs.
+
+One issue that presented itself with the augmentations was that applying the augmentations directly to the one-hot encoded masks led to an edge case where if an augmentation introduced additional background class (i.e. a rotation). It would not be counted in the background class of themask. This was solved by only converting the segmentations masks to one-hot encoding after the augmentations were applied.
+
+#### Hyperparameter Tuning
+While the justification for the extremely low batch size of two is not explicitly stated in the Improved U-Net paper, they do it is implied to be due to VRAM constraints.  Since both two-dimensional data is significantly more compact than three-dimensional data and since more powerful GPUs are available, it is logical to increase the original batch size from two to a larger number.
+
+Additionally, when batch size is changed, the optimal learning rate often changes too. In the the paper, a conservative initial learning rate of  $5 \times 10^{-4}$ is used. This would likely be unsuitable for an increased batch size.
+
+Therefore, an experiment was conducted wherein the batch size and learning rate space was grid searched, in order to find the optimal combination. Exponentially increasing batch sizes were tested from 8 to 128. For each batch size, a range of initial learning rates were tested from 0.0001 to 0.02. The results of this parameter search is shown below in figure 7.
+
+
+<p align="center">
+    <img src="./images/param-search.png" width="1200">
+</p>
+<p align="center">
+    <em>Figure 7: Results of the hyperparameter grid search. Table 1 (left) contains the Best validation mean DICE score from each parameter combination. Table 2 (right) contains the mean dice for the prostate class</em>
+</p>
+
+As shown in figure 7, it can be observed that a batch size of 64 combined with learning a learning rate of 0.002 resulted in the highest mean DICE score on the validation dataset. The metric by which project success is measured is having a minimum DICE score across all classes of at least 0.75. Therefore, another logical metric would be the best validation DICE on the most difficult class, the prostate. The second table in figure 7 indicates that the batch size of 64 combined with the learning rate of 0.002 also performs best for this metric.
+
