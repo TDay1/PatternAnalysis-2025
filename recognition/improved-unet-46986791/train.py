@@ -6,33 +6,39 @@ from utils import DiceLoss, per_class_score_dice, build_transforms
 from tqdm.auto import tqdm
 import os
 import pandas as pd
+import argparse
 
-device = 'mps'
-checkpoint_dir = './checkpoints'
-os.makedirs(checkpoint_dir, exist_ok=True)
+parser = argparse.ArgumentParser()
+parser.add_argument("-e", "--epochs", default=20, type=int)
+parser.add_argument("-lr", "--learning-rate", default=1e-3, type=float)
+parser.add_argument("-bs", "--batch-size", default=32, type=int)
+parser.add_argument("-o", "--output-dir", default="./checkpoints", type=str)
+parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu", type=str)
+args = parser.parse_args()
+
+os.makedirs(args.output_dir, exist_ok=True)
 
 # data
 transforms = build_transforms()
 train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train', transforms=transforms)
-train_loader = DataLoader(train_ds, batch_size=16, shuffle=True)
+train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True)
 
 val_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_validate', './data/keras_slices_data/keras_slices_seg_validate')
-val_loader = DataLoader(val_ds, batch_size=16, shuffle=False)
+val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False)
 
-model = ImprovedUNet().to(device)
+model = ImprovedUNet().to(args.device)
 loss_fn = DiceLoss()
-optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
+optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
 # Logging
-train_csv_dir = f'./{checkpoint_dir}/train_metrics.csv'
+train_csv_dir = f'./{args.output_dir}/train_metrics.csv'
 train_metrics = []
-val_csv_dir = f'./{checkpoint_dir}/val_metrics.csv'
+val_csv_dir = f'./{args.output_dir}/val_metrics.csv'
 val_metrics = []
 
 
-num_epochs = 10
-for epoch in range(num_epochs):
-    print(f"======== Epoch {epoch}/{num_epochs} ======")
+for epoch in range(args.epochs):
+    print(f"======== Epoch {epoch}/{args.epochs} ======")
 
     print(f"Training...")
     loading_bar = tqdm(train_loader)
@@ -43,8 +49,8 @@ for epoch in range(num_epochs):
     
     model.train()
     for batch_index, (images, segs) in enumerate(loading_bar):
-        images = images.to(device)
-        segs = segs.to(device)
+        images = images.to(args.device)
+        segs = segs.to(args.device)
 
         optimiser.zero_grad()
         outputs = model(images)
@@ -95,8 +101,8 @@ for epoch in range(num_epochs):
     
     with torch.no_grad():
         for images, segs in loading_bar:
-            images = images.to(device)
-            segs = segs.to(device)
+            images = images.to(args.device)
+            segs = segs.to(args.device)
 
             outputs = model(images)
 
@@ -129,4 +135,4 @@ for epoch in range(num_epochs):
 
     pd.DataFrame(val_metrics).to_csv(val_csv_dir)
 
-    torch.save(model.state_dict(), f'{checkpoint_dir}/epoch_{epoch}.pth')
+    torch.save(model.state_dict(), f'{args.output_dir}/epoch_{epoch}.pth')
