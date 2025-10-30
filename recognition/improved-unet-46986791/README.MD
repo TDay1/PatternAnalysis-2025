@@ -6,7 +6,7 @@
 
 ---
 ## Introduction
-The aim of this project is to adapt the "Improved U-Net" architecture [CITE] to segment 2D Magnetic Resonance Imaging (MRI) scans of human hips into six distinct classes. This report will explore the model architecture, training process, and results of this task. Success will be measured by all labels having a minimum Dice-Sørensen (Dice) coeffecient of 0.75.
+The aim of this project is to adapt the "Improved U-Net" architecture [1] to segment 2D Magnetic Resonance Imaging (MRI) scans of human hips into six distinct classes. This report will explore the model architecture, training process, and results of this task. Success will be measured by all labels having a minimum Dice-Sørensen (Dice) coeffecient of 0.75.
 
 ## Table of Contents
 
@@ -18,10 +18,11 @@ The aim of this project is to adapt the "Improved U-Net" architecture [CITE] to 
 5. [Training](#training)
 6. [Results](#results)
 7. [Running Instructions](#running)
+8. [References](#references)
 
 
 ## Dataset
-As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [CITE] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11460, 660, and 540 respectively. 
+As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11460, 660, and 540 respectively. 
 
 | Split    | Number of samples | Purpose                                                                          |
 |----------|:-----------------:|----------------------------------------------------------------------------------|
@@ -42,12 +43,12 @@ In addition to the 12,660 MRI scan images are corresponding ground-truth segment
 | 4        | Rectum     | <img src="./images/readme-ground-truth-class-4.png" width="200"> |
 | 5        | Prostate   | <img src="./images/readme-ground-truth-class-5.png" width="200"> |
 
-*Figure 2: A table demonstrating the classes from the HipMRI dataset [CITE]. Classes 0, 1, 2, 3, and 5 example taken from train image 567, class 4 example taken from train image 582*
+*Figure 2: A table demonstrating the classes from the HipMRI dataset [2]. Classes 0, 1, 2, 3, and 5 example taken from train image 567, class 4 example taken from train image 582*
 
 ## Improved U-Net
 
 ### Background
-In 2015, Ronneberger et al. [TODO CITE] published "U-Net: Convolutional Networks for Biomedical Image Segmentation", which introduced the novel "U-Net" convolution neural network architecture. This architecture incorporated the idea of adding "skip connections" to the encoder-decoder architecture, enabling more precise segmentations.
+In 2015, Ronneberger et al. [3] published "U-Net: Convolutional Networks for Biomedical Image Segmentation", which introduced the novel "U-Net" convolution neural network architecture. This architecture incorporated the idea of adding "skip connections" to the encoder-decoder architecture, enabling more precise segmentations.
 
 <p align="center">
     <img src="./images/original-unet-architecture.png" width="700">
@@ -55,25 +56,25 @@ In 2015, Ronneberger et al. [TODO CITE] published "U-Net: Convolutional Networks
 
 
 <p align="center">
-    <em>Figure 3: The original U-Net architecture. Diagram from the original paper [TODO CITE]</em>
+    <em>Figure 3: The original U-Net architecture. Diagram from the original paper [3]</em>
 </p>
 
 The original U-Net's encoder consisted 5 levels, each using two 3x3 convolutions with an ReLU activation function. The decoder consisted of the same architecture, except it was mirrored, increasing the spatial feature using up-convolutions (transposed convolutions) and it also accepted the input from the skip connections at each level. 
 
 ### Improved U-Net Architecture
 
-In 2018, Isensee et al. release an "Improved U-Net" paper [TODO: CITE], that build upon the work on Renneberger at al. to create a U-Net-like network that could operate on three-dimensional data and achieve improved state of the art accuracy. While the Improved U-Net paper was originally intended for three-dimensional data, as per the task description (project 3) this report will adapt it for two-dimensional data. Therefore, the following description of the architecture will be for a two-dimensional variation of the Improved U-Net paper, rather than the original three-dimensional architecture.
+In 2018, Isensee et al. release an "Improved U-Net" paper [1], that build upon the work on Renneberger at al. to create a U-Net-like network that could operate on three-dimensional data and achieve improved state of the art accuracy. While the Improved U-Net paper was originally intended for three-dimensional data, as per the task description (project 3) this report will adapt it for two-dimensional data. Therefore, the following description of the architecture will be for a two-dimensional variation of the Improved U-Net paper, rather than the original three-dimensional architecture.
 
 <p align="center">
     <img src="./images/improved-unet-architecture.png" width="850">
 </p>
 
 <p align="center">
-    <em>Figure 4: The Improved U-Net diagram, taken from the paper [TODO cite]</em>
+    <em>Figure 4: The Improved U-Net diagram, taken from the original paper [1]</em>
 </p>
 
 #### Encoder
-The encoder section improved upon the original U-Net implementation by introducing context modules, which are based on pre-activation residual blocks introduced by by He et al. in "Identity Mappings in Deep Residual Networks" [TODO CITE:  https://arxiv.org/pdf/1603.05027]. The Context modules consist of two layers containing instance normalisation, LeakyReLU, and a convolution, with a dropout layer in-between. The residual is taken at the start of the block and summed to the output of the two layers.
+The encoder section improved upon the original U-Net implementation by introducing context modules, which are based on pre-activation residual blocks introduced by by He et al. in "Identity Mappings in Deep Residual Networks" [4]. The Context modules consist of two layers containing instance normalisation, LeakyReLU, and a convolution, with a dropout layer in-between. The residual is taken at the start of the block and summed to the output of the two layers.
 
 
 <p align="center">
@@ -81,7 +82,7 @@ The encoder section improved upon the original U-Net implementation by introduci
 </p>
 
 <p align="center">
-    <em>Figure 5: Diagram of the context module from the Improve U-Net paper [TODO CITE]</em>
+    <em>Figure 5: Block diagram of the context module</em>
 </p>
 
 
@@ -121,7 +122,7 @@ In the Improved U-Net paper, the authors describe the following training setup:
 Our training implementations will need to make reasonable deviations from the paper's original setup. This change is required because this implementation is focusing on two-dimensional data and because significantly more powerful GPUs have become available since the paper was authored in 2018.
 
 #### Data augmentations
-In the Improved U-Net paper [TODO cite] they made extensive use of augmentations applied on the fly during training. As such, in this implementation similar augmentations were used. The "transforms v2" API  within Pytorch TorchVision [TODO cite], as the transformations applied to the image and the segmentation mask must be the same, and the "transforms v2" API supports this use case. The following snippet shows the transforms used.
+In the Improved U-Net paper [1] they made extensive use of augmentations applied on the fly during training. As such, in this implementation similar augmentations were used. The "transforms v2" API  within Pytorch TorchVision, as the transformations applied to the image and the segmentation mask must be the same, and the "transforms v2" API supports this use case. The following snippet shows the transforms used.
 
 ```py
 transforms = v2.Compose([
@@ -294,4 +295,8 @@ With the following command line arguments:
 
 
 ## References
-TODO
+[1] F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge,” Feb. 28, 2018, arXiv: arXiv:1802.10508. doi: 10.48550/arXiv.1802.10508.
+[2] J. Dowling and P. Greer, “Labelled weekly MR images of the male pelvis.” CSIRO, 2021. doi: 10.25919/45T8-P065.
+[3] O. Ronneberger, P. Fischer, and T. Brox, “U-Net: Convolutional Networks for Biomedical Image Segmentation,” in Medical Image Computing and Computer-Assisted Intervention – MICCAI 2015, N. Navab, J. Hornegger, W. M. Wells, and A. F. Frangi, Eds., Cham: Springer International Publishing, 2015, pp. 234–241.
+[4] K. He, X. Zhang, S. Ren, and J. Sun, “Identity Mappings in Deep Residual Networks,” in Computer Vision – ECCV 2016, B. Leibe, J. Matas, N. Sebe, and M. Welling, Eds., Cham: Springer International Publishing, 2016, pp. 630–645.
+
