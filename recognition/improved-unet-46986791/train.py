@@ -16,6 +16,7 @@ parser.add_argument("-lr", "--learning-rate", default=1e-3, type=float)
 parser.add_argument("-lrd", "--learning-rate-decay-gamma", default=0.985, type=float)
 parser.add_argument("-bs", "--batch-size", default=32, type=int)
 parser.add_argument("-o", "--output-dir", default="./checkpoints", type=str)
+parser.add_argument("-d", "--dataset-dir", default="./data/keras_slices_data", type=str)
 parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu", type=str)
 args = parser.parse_args()
 
@@ -24,10 +25,10 @@ os.makedirs(args.output_dir, exist_ok=True)
 
 # Build datasets + loaders
 transforms = build_transforms()
-train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train', transforms=transforms)
+train_ds = HipMRIDataset(f'{args.dataset_dir}/keras_slices_train', f'{args.dataset_dir}/keras_slices_seg_train', transforms=transforms)
 train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=12 if args.device == "cuda" else 0, pin_memory=(args.device == "cuda"))
 
-val_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_validate', './data/keras_slices_data/keras_slices_seg_validate')
+val_ds = HipMRIDataset(f'{args.dataset_dir}/keras_slices_validate', f'{args.dataset_dir}/keras_slices_seg_validate')
 val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,  num_workers=4 if args.device == "cuda" else 0, pin_memory=(args.device == "cuda"))
 
 model = ImprovedUNet().to(args.device)

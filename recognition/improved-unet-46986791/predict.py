@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model-dir", required=True, type=str)
 parser.add_argument("-o", "--output-dir", default="./predict", type=str)
 parser.add_argument("-c", "--count", default=2, type=int)
+parser.add_argument("-d", "--dataset-dir", default="./data/keras_slices_data", type=str)
 args = parser.parse_args()
 os.makedirs(args.output_dir, exist_ok=True)
 
@@ -24,7 +25,7 @@ model.load_state_dict(state_dict)
 model.eval()
 
 # Load dataset
-test_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_test', './data/keras_slices_data/keras_slices_seg_test')
+test_ds = HipMRIDataset(f'{args.dataset_dir}/keras_slices_test', f'{args.dataset_dir}/keras_slices_seg_test')
 test_loader = DataLoader(test_ds, batch_size=args.count, shuffle=True)
 images, segs = next(iter(test_loader))
 

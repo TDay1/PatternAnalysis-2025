@@ -280,6 +280,7 @@ The `train.py` script is used to train the model. It can be called as follows:
 ```bash
 python train.py \
     -o ./checkpoints \
+    -d /home/groups/comp3710/HipMRI_Study_open/keras_slices_data \
     -e 35 \
     -bs 64 \
     -lr 0.002 \
@@ -290,6 +291,7 @@ with the following command-line arguments:
 | Shorthand | Longhand                    | Purpose                                                  | Required? |
 | --------- | --------------------------- | -------------------------------------------------------- | --------- |
 | -e        | --epochs                    | The number of epochs to train for.                       | No        |
+| -d        | --dataset-dir               | The directory containing the 2D HipMRI dataset           | No        |
 | -lr       | --learning-rate             | The learning rate to train with.                         | No        |
 | -lrd      | --learning-rate-decay-gamma | The gamma argument passed to the learning rate scheduler | No        |
 | -bs       | --batch-size                | The batch size to train with                             | No        |
@@ -301,16 +303,20 @@ The `predict.py` script can be used to generate sample predictions. It can be ca
 ```bash
 python predict.py \
     -o ./pred \
+    -d /home/groups/comp3710/HipMRI_Study_open/keras_slices_data \
     -m ./checkpoint/epoch_35.pth \
     -c 2 \
 ```
 
 With the following command line arguments:
-| Shorthand | Longhand     | Purpose                                                    | Required? |
-| --------- | ------------ | ---------------------------------------------------------- | --------- |
-| -m        | --model-dir  | The model weights that will be used to make the prediction | Yes       |
-| -o        | --output-dir | The directory to output the predictions to                 | No        |
-| -c        | --count      | The number of predictions to make                          | No        |
+| Shorthand | Longhand      | Purpose                                                    | Required? |
+| --------- | ------------- | ---------------------------------------------------------- | --------- |
+| -m        | --model-dir   | The model weights that will be used to make the prediction | Yes       |
+| -o        | --output-dir  | The directory to output the predictions to                 | No        |
+| -c        | --count       | The number of predictions to make                          | No        |
+| -d        | --dataset-dir | The directory containing the 2D HipMRI dataset             | No        |
+
+
 
 
 ## References
