@@ -6,7 +6,7 @@
 
 ---
 ## Introduction
-The aim of this project is to adapt the "Improved U-Net" architecture [1] to segment 2D Magnetic Resonance Imaging (MRI) scans of human hips into six distinct classes. This report will explore the model architecture, training process, and results of this task. Success will be measured by all labels having a minimum Dice-Sørensen (Dice) coeffecient of 0.75.
+The aim of this project is to adapt the "Improved U-Net" architecture [1] to segment 2D Magnetic Resonance Imaging (MRI) scans of human hips into six distinct classes. This report will explore the model architecture, training process, and results of this task. Success will be measured by all labels having a minimum Dice-Sørensen (Dice) coefficient of 0.75.
 
 ## Table of Contents
 
@@ -22,17 +22,17 @@ The aim of this project is to adapt the "Improved U-Net" architecture [1] to seg
 
 
 ## Dataset
-As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11460, 660, and 540 respectively. 
+As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11,460, 660, and 540 respectively. 
 
 | Split    | Number of samples | Purpose                                                                          |
 |----------|:-----------------:|----------------------------------------------------------------------------------|
-| Train    | 11460             | Used to fit the model.                                                           |
+| Train    | 11,460             | Used to fit the model.                                                           |
 | Validate | 660               | Used to tune hyperparameters, monitor training progress, and detect overfitting. |
 | Test     | 540               | Used to test how well the final model performs. Not used until after training.   |
 
-*Figure 1: A table describing the train, validate, and test spits.*
+*Figure 1: A table describing the train, validate, and test splits.*
 
-In addition to the 12,660 MRI scan images are corresponding ground-truth segmentation labels, which assign any given pixel in any given image to one of six classes including background. Figure 2 describes these 6 classes below.
+In addition to the 12,660 MRI, the dataset includes scan images are corresponding ground-truth segmentation labels, which assign each pixel in each given image to one of six classes including background. Figure 2 describes these 6 classes below.
 
 | Class ID | Label      | Example Ground Truth Segmentation    |
 | -------- | ---------- | ------------------------------------ |
