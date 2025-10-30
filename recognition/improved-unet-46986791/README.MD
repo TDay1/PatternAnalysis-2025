@@ -14,9 +14,10 @@ The aim of this project is to adapt the "Improved U-Net" architecture [CITE] to 
 1. [Table of Contents](#table-of-contents)
 2. [Dataset](#Dataset)
 3. [Introduction to Improved U-Net](#improved-u-net)
-4. [Training Setup](#Training-Setup)
-5. [Training](#Training)
-6. [Results](#Results)
+4. [Training Setup](#training-setup)
+5. [Training](#training)
+6. [Results](#results)
+7. [Running Instructions](#running)
 
 
 ## Dataset
@@ -232,3 +233,65 @@ To further confirm the accuracy of the model, example segmentations were predict
 <p align="center">
     <em>Figure 14: The four random sample predictions from figure 13, overlaid on top of the input image. Ground truth is on the left, while prediction is on the right</em>
 </p>
+
+
+## Running
+
+#### Dependencies
+This project depends on the following python libraries:
+```
+torch
+numpy
+nibabel
+scipy
+torchvision
+tqdm
+pandas
+matplotlib
+```
+
+The specific versions of the libraries and their dependencies used can be found in the `requirements.txt` file, and can be loaded using:
+```bash
+pip install -r requirements.txt
+```
+
+#### Training
+The `train.py` script is used to train the model. It can be called as follows:
+```bash
+python train.py \
+    -o ./checkpoints \
+    -e 35 \
+    -bs 64 \
+    -lr 0.002 \
+    --device cuda
+```
+
+with the following command-line arguments:
+| Shorthand | Longhand                    | Purpose                                                  | Required? |
+| --------- | --------------------------- | -------------------------------------------------------- | --------- |
+| -e        | --epochs                    | The number of epochs to train for.                       | No        |
+| -lr       | --learning-rate             | The learning rate to train with.                         | No        |
+| -lrd      | --learning-rate-decay-gamma | The gamma argument passed to the learning rate scheduler | No        |
+| -bs       | --batch-size                | The batch size to train with                             | No        |
+| -o        | --output-dir                | The directory to output training data to                 | No        |
+|           | --device                    | The accelerator to train with                            | No        |
+
+#### Inference
+The `predict.py` script can be used to generate sample predictions. It can be called as follows:
+```bash
+python predict.py \
+    -o ./pred \
+    -m ./checkpoint/epoch_35.pth \
+    -c 2 \
+```
+
+With the following command line arguments:
+| Shorthand | Longhand     | Purpose                                                    | Required? |
+| --------- | ------------ | ---------------------------------------------------------- | --------- |
+| -m        | --model-dir  | The model weights that will be used to make the prediction | Yes       |
+| -o        | --output-dir | The directory to output the predictions to                 | No        |
+| -c        | --count      | The number of predictions to make                          | No        |
+
+
+## References
+TODO
