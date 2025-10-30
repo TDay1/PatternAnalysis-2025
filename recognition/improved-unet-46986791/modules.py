@@ -3,14 +3,25 @@ import torch.nn as nn
         
 class ContextModule(nn.Module):
     """
-    implementation of the context module from the improved unet paper (which is a modified residual layer from the Identity Mappings in Deep Residual Networks paper)
-    TODO: cite
+    Implementation of the context module from the improved unet paper [1].
+    It's worth noting that this module is based upon the pre-activation
+    residual block from the Identity Mappings in Deep Residual Networks paper [4]
     """
     def __init__(self, in_channels):
+        """
+        Instanciates the ContextModule class.
+
+        Args:
+            in_channels: Number of input and output channels.
+
+        returns:
+            ContextModule
+        """
         super().__init__()
 
         # Batchnorm replaced by instance norm in the paper for small batch sizes
-        # TODO: since we will have larger batch sizes (we training in 2d) it may make sense to switch back to batchnorm??
+        # Since in our implementation we will be using a larger batch size, it
+        # may make sense to change this back to a batchnorm as per [4]?
         self.norm1 = nn.InstanceNorm2d(in_channels)
         self.act1 = nn.LeakyReLU(0.01, inplace=True)
         self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1)
@@ -22,33 +33,63 @@ class ContextModule(nn.Module):
         self.conv2 = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
+        """
+        Forward pass of the context module
+        Args:
+            x: input tensor
+
+        Returns:
+            A tensor of the same shape.
+        """
         residual = x
+
+        # conv block 1
         x = self.norm1(x)
         x = self.act1(x)
         x = self.conv1(x)
 
+        # Dropout between blocks
         x = self.dropout(x)
         
+        # conv block 2
         x = self.norm2(x)
         x = self.act2(x)
         x = self.conv2(x)
 
+        # add residual back onto the output
         x = x + residual
         
         return x
 
 class DownsamplingModule(nn.Module):
     """
-    Down sample (the gold blocks in the paper's diagram)
-    Just a 3x3 conv with 2 stride
+    Downsampling Module.
+    Reduces the spatial resolution and increases the number of features.
     """
     def __init__(self, in_channels, out_channels):
+        """
+        Instanciates the DownSampling module.
+
+        Args:
+            in_channels: The number of input channels
+            out_channels: The number of output channels
+
+        returns:
+            DownsamplingModule
+        """
         super().__init__()
 
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1)
         self.act = nn.LeakyReLU(0.01, inplace=True)
 
     def forward(self, x):
+        """
+        Forward pass of the downsampling module.
+        Args:
+            x: The tensor to apply the downsampling module to
+        returns:
+            A tensor that has been downsampled
+        """
         x = self.conv(x)
         x = self.act(x)
 
@@ -57,11 +98,19 @@ class DownsamplingModule(nn.Module):
 
 class UpsamplingModule(nn.Module):
     """
-    From the paper: "first upsampling the low resolution feature maps, which is done by means of a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution that halves the number of feature maps" [CITE]
-    It is the blue blocks in fig. 1 from the improved unet paper.
-    TODO: unsure how well this will work compared to transposed convs. change this if bad results.
+    Upsampling module from the Improved U-Net paper.
+    Upsamples the input by a factor of two while halving the number of
+    channels/features. Used in place of transposed convs in improved Unet.
     """
     def __init__(self, in_channels):
+        """
+        Instanciates an upsamplign module
+        args:
+            in_channels: The number of input channels
+
+        returns:
+            UpsamplingModule
+        """
         super().__init__()
         
         self.upsample = nn.Upsample(scale_factor=2)
@@ -69,7 +118,17 @@ class UpsamplingModule(nn.Module):
         self.act = nn.LeakyReLU(0.01, inplace=True)
 
     def forward(self, x):
+        """
+        Forward pass of the Upsampling Module.
+        args:
+            x: Input tensor to apply forward pass to
+
+        returns:
+            A tensor which has been upsampled
+        """
+        # Upsample input
         x = self.upsample(x)
+        # Half the channels
         x = self.conv(x)
         x = self.act(x)
 
@@ -78,10 +137,20 @@ class UpsamplingModule(nn.Module):
 
 class LocalisationModule(nn.Module):
     """
-    implementation of the localisation module from the paper (fig. 1 orange blocks).
-    From the paper: "A localization module consists of a 3x3x3 convolution followed by a 1x1x1 convolution that halves the number of feature maps" [cite]
+    Localisation module from the Improved U-Net paper
+
+    A 3x3 convolution followed by a 1x1 convolution that halves the number of
+    channels.
     """
     def __init__(self, in_channels):
+        """
+        Instanciates a Localisation Module
+        Args:
+            in_channels: The number of input channels.
+        Returns:
+            LocalisationModule
+        """
+        
         super().__init__()
 
         self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1)
@@ -91,6 +160,13 @@ class LocalisationModule(nn.Module):
         self.act2 = nn.LeakyReLU(0.01, inplace=True)
 
     def forward(self, x):
+        """
+        Forward pass of the localisation module
+        args:
+            x: The tensor to apply the forward pass to
+        returns:
+            The output tensor from the localisation module
+        """
         x = self.conv1(x)
         x = self.act1(x)
 
@@ -101,21 +177,45 @@ class LocalisationModule(nn.Module):
 
 class SegmentationLayer(nn.Module):
     """
-    1x1 conv for the paper's "deep supervisionb" mechanism
+    1x1 conv for the paper's "deep supervisionn" mechanism
     Dark green blocks on the diagram
     """
     def __init__(self, in_channels, seg_class_count):
+        """
+        Instanciates a SegmentationLayer
+        args:
+            in_channels: The number of input channels
+            seg_class_count: The number of classes being segmented
+        Returns:
+            SegmentationLayer
+        """
         super().__init__()
         self.conv = nn.Conv2d(in_channels, seg_class_count, kernel_size=1)
 
     def forward(self, x):
+        """
+        A forward pass of the Segmentation layr
+        Args:
+            x: input tensor
+        Returns:
+            output tensor
+        """
         x = self.conv(x)
         
         return x
         
 
 class ImprovedUNet(nn.Module):
+    """
+    Implementation of the improved unet model architecture [1] in two dimensions.
+    Consists of an encoder-decoder network with skip connections
+    """
     def __init__(self):
+        """
+        Constructs an ImprovedUnet
+        returns:
+            ImprovedUnet
+        """
         super().__init__()
         self.class_count = 6
 
@@ -125,6 +225,7 @@ class ImprovedUNet(nn.Module):
         # Levels are based on where the layer is in the diagram (Improved unet paper, fig. 1).
 
         # Encoder
+        # Initial conv moves input into feature space
         self.initial_conv = nn.Conv2d(1, filter_sizes[0], kernel_size=3, padding=1)
         self.context_0 = ContextModule(filter_sizes[0])
 
@@ -159,13 +260,24 @@ class ImprovedUNet(nn.Module):
         self.final_conv = nn.Conv2d(filter_sizes[0] * 2, filter_sizes[1], kernel_size=3, padding=1)
         self.seg_0 = SegmentationLayer(filter_sizes[1], self.class_count)
 
-        # Deep supervision upscaling
+        # Deep supervision upscaling - feature maps from different "levels" have
+        # different resolutions. As per the paper we must upscale them to be
+        # combined with the final model output.
         self.upscale_seg_2 = nn.Upsample(scale_factor=4, mode='bilinear')
         self.upscale_seg_1 = nn.Upsample(scale_factor=2, mode='bilinear')
 
         self.output = nn.Softmax(dim=1)
 
     def forward(self, x):
+        """
+        Forward pass of the improved U-Net model.
+        Args:
+            x: Input image tensor of shape (Batch, 1, H, W)
+
+        Returns:
+            A tensor containig a class probability map in the shape
+            (Batch, 6, H, W)
+        """
 
         # encoder
         x = self.initial_conv(x)
@@ -181,6 +293,7 @@ class ImprovedUNet(nn.Module):
         skip3 = self.context_3(x)
 
         x = self.downsample_4(skip3)
+        # Bottleneck
         x = self.context_4(x)
 
         # Decoder
@@ -206,12 +319,15 @@ class ImprovedUNet(nn.Module):
         seg_lvl_0 = self.seg_0(x)
 
         # deep supervision
+        # First upsample the intermediate logits
         upscale_lvl_2 = self.upscale_seg_2(seg_lvl_2)
         upscale_lvl_1 = self.upscale_seg_1(seg_lvl_1)
 
+        # Then add the upscaled logits and the final model output
         out = upscale_lvl_2 + upscale_lvl_1
         out = out + seg_lvl_0
 
+        # Softmax
         out = self.output(out)
         
         return out
