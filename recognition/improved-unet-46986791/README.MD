@@ -115,7 +115,7 @@ Improved U-Net replaces this loss function with multiclass Dice loss. This loss 
 In the Improved U-Net paper, the authors describe the following training setup:
 - Batch size 2
 - an initial learning rate of $5 \times 10^{-4}$, with exponential decay following the schedule $lr_{init} \cdot 0.985^{epoch}$
-- weight decal of $10^{-5}$
+- weight decay of $10^{-5}$
 - Adam optimiser
 - Extensive Augmentations
 
@@ -135,14 +135,14 @@ transforms = v2.Compose([
 
 The parameters of the transforms were not given in the paper, and as such had to be derived manually. The parameters (shown in the snippet above) were determined through a process of visual inspection, selecting the largest possible augmentations that still appeared as if they could reasonably be real MRIs.
 
-One issue that presented itself with the augmentations was that applying the augmentations directly to the one-hot encoded masks led to an edge case where if an augmentation introduced additional background class (i.e. a rotation). It would not be counted in the background class of themask. This was solved by only converting the segmentations masks to one-hot encoding after the augmentations were applied.
+One issue that presented itself with the augmentations was that applying the augmentations directly to the one-hot encoded masks led to an edge case where if an augmentation introduced additional background class (i.e. a rotation). It would not be counted in the background class of the mask. This was solved by only converting the segmentations masks to one-hot encoding after the augmentations were applied.
 
 #### Hyperparameter Tuning
-While the justification for the extremely low batch size of two is not explicitly stated in the Improved U-Net paper, they do it is implied to be due to VRAM constraints.  Since both two-dimensional data is significantly more compact than three-dimensional data and since more powerful GPUs are available, it is logical to increase the original batch size from two to a larger number.
+While the justification for the extremely low batch size of two is not explicitly stated in the Improved U-Net paper, it is implied to be due to VRAM constraints. Since both two-dimensional data is significantly more compact than three-dimensional data and since more powerful GPUs are available, it is logical to increase the original batch size from two to a larger number.
 
-Additionally, when batch size is changed, the optimal learning rate often changes too. In the the paper, a conservative initial learning rate of  $5 \times 10^{-4}$ is used. This would likely be unsuitable for an increased batch size.
+Additionally, when batch size is changed, the optimal learning rate often changes too. In the paper, a conservative initial learning rate of  $5 \times 10^{-4}$ is used. This would likely be unsuitable for an increased batch size.
 
-Therefore, an experiment was conducted wherein the batch size and learning rate space was grid searched, in order to find the optimal combination. Exponentially increasing batch sizes were tested from 8 to 128. For each batch size, a range of initial learning rates were tested from 0.0001 to 0.02. The results of this parameter search is shown below in figure 7.
+Therefore, an experiment was conducted wherein the batch size and learning rate space was grid searched, in order to find the optimal combination. Exponentially increasing batch sizes were tested from 8 to 128. For each batch size, a range of initial learning rates were tested from 0.0001 to 0.02. The results of this parameter search are shown below in figure 7.
 
 
 <p align="center">
@@ -178,13 +178,13 @@ Throughout training, the loss value for both the training and validation dataset
 </p>
  
 
-Similarly, the DICE score for both the training and validation datasets were ecorded throughout training:
+Similarly, the DICE score for both the training and validation datasets were recorded throughout training:
 
  <p align="center">
     <img src="./images/training-dice.png" width="1200">
 </p>
 <p align="center">
-    <em>Figure 10: Plots of the training DICE measured per-batch (left) and the mean validation DICE per epoch (right.)</em>
+    <em>Figure 10: Plots of the training DICE measured per-batch (left) and the mean validation DICE per epoch (right).</em>
 </p>
 
 Finally, since the key metric for this project is achieving a minimum DICE score of 0.75 on all labels, the DICE score for each of the 6 classes was recorded throughout training. This is shown below in Figure 11:
@@ -197,9 +197,9 @@ Finally, since the key metric for this project is achieving a minimum DICE score
 </p>
 
 #### Analysis of Training
-When observing the loss curves (Figure 9) and the accuracy curves (Figure 10) a peculiar artefact can be seen around the 500 batches mark. The loss appears to plateau before rapidly descending again. This artefact can be explained by the per-class DICE scores (Figure 11). When observing these DICE score curves, the first 3 classes (background, body, and bones) dramatically increase in accuracy very quickly, with the rate of improvement already beginning to plateau by the 500th batch. The latter 3 classes (bladder, rectum, and prostate), on the other hand, do not see any improvements until around the 500th epoch, at which point their accuracy improves significantly. Therefore,this artefact in the loss and accuracy curves can be explained by the "easier" larger classes being learnt before the "harder" more intricate classes.
+When observing the loss curves (Figure 9) and the accuracy curves (Figure 10) a peculiar artefact can be seen around the 500 batches mark. The loss appears to plateau before rapidly descending again. This artefact can be explained by the per-class DICE scores (Figure 11). When observing these DICE score curves, the first 3 classes (background, body, and bones) dramatically increase in accuracy very quickly, with the rate of improvement already beginning to plateau by the 500th batch. The latter 3 classes (bladder, rectum, and prostate), on the other hand, do not see any improvements until around the 500th batch, at which point their accuracy improves significantly. Therefore,this artefact in the loss and accuracy curves can be explained by the "easier" larger classes being learnt before the "harder" more intricate classes.
 
-Other than this artefact, the loss curves appear typical for a convolutional neural network, with the training loss eventually plateauing and the validation accuracy close but ever so slightly worse the train accuracy.
+Other than this artefact, the loss curves appear typical for a convolutional neural network, with the training loss eventually plateauing and the validation accuracy close but ever so slightly worse than the train accuracy.
 
 ## Results
 The benchmark for this project to be successful was for a model to be produced that could segment images in the test dataset with a minimum DICE score of at least 0.75. This model was able to fulfil this requirement, as shown by the test dataset results in figure 12:
