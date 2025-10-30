@@ -9,6 +9,7 @@ import pandas as pd
 import argparse
 from torch.optim.lr_scheduler import ExponentialLR
 
+# Parse CLI args
 parser = argparse.ArgumentParser()
 parser.add_argument("-e", "--epochs", default=20, type=int)
 parser.add_argument("-lr", "--learning-rate", default=1e-3, type=float)
@@ -18,27 +19,28 @@ parser.add_argument("-o", "--output-dir", default="./checkpoints", type=str)
 parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu", type=str)
 args = parser.parse_args()
 
+# Ensure the output directory exists
 os.makedirs(args.output_dir, exist_ok=True)
 
-# data
+# Build datasets + loaders
 transforms = build_transforms()
 train_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_train', './data/keras_slices_data/keras_slices_seg_train', transforms=transforms)
-train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=12, pin_memory=(args.device == "cuda"))
+train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=12 if args.device == "cuda" else 0, pin_memory=(args.device == "cuda"))
 
 val_ds = HipMRIDataset('./data/keras_slices_data/keras_slices_validate', './data/keras_slices_data/keras_slices_seg_validate')
-val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,  num_workers=4, pin_memory=(args.device == "cuda"))
+val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,  num_workers=4 if args.device == "cuda" else 0, pin_memory=(args.device == "cuda"))
 
 model = ImprovedUNet().to(args.device)
+
 loss_fn = DiceLoss()
 optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
 scheduler = ExponentialLR(optimiser, gamma=args.learning_rate_decay_gamma)
 
-# Logging
+# Setup performance logging
 train_csv_dir = f'./{args.output_dir}/train_metrics.csv'
 train_metrics = []
 val_csv_dir = f'./{args.output_dir}/val_metrics.csv'
 val_metrics = []
-
 
 for epoch in range(args.epochs):
     print(f"======== Epoch {epoch}/{args.epochs} ======")
@@ -50,6 +52,7 @@ for epoch in range(args.epochs):
     loss_history = []
     dice_class_scores = []
     
+    # Train the model for one epoch
     model.train()
     for batch_index, (images, segs) in enumerate(loading_bar):
         images = images.to(args.device)
@@ -71,7 +74,7 @@ for epoch in range(args.epochs):
 
         loading_bar.set_postfix({"Total loss": f"{train_loss:.4f}", "mean loss": f"{(train_loss/len(loss_history)):.4f}", "Current LR": scheduler.get_last_lr()[0]})
 
-        # log batch
+        # log batch metrics
         train_metrics.append({
             'epoch': epoch,
             'batch': batch_index,
@@ -86,6 +89,7 @@ for epoch in range(args.epochs):
             'current_lr': scheduler.get_last_lr()[0],
         })
 
+    # Update training metrics CSV
     pd.DataFrame(train_metrics).to_csv(train_csv_dir)
 
     dice_class_scores = torch.stack(dice_class_scores)
@@ -94,7 +98,7 @@ for epoch in range(args.epochs):
     print(f"class-by-class mean dice score on train set: {mean_dice_class_scores}")
 
 
-    # Validation
+    # Test model on one epoch of the validation dataset
     print(f"Validating...")
     loading_bar = tqdm(val_loader)
     model.eval()
@@ -117,14 +121,12 @@ for epoch in range(args.epochs):
             dice_class_scores.append(per_class_score_dice(outputs, segs))
             loading_bar.set_postfix({"Total loss": f"{val_loss:.4f}", "mean loss": f"{(val_loss/len(loss_history)):.4f}"})
 
-
-
     dice_class_scores = torch.stack(dice_class_scores)
     mean_dice_class_scores = torch.nanmean(dice_class_scores, dim=0)
     
     print(f"class-by-class mean dice score on validation set: {mean_dice_class_scores}")
 
-    # log val epoch
+    # log validation performance metrics
     val_metrics.append({
         'epoch': epoch,
         'mean_loss': (val_loss/len(loss_history)),
@@ -137,8 +139,11 @@ for epoch in range(args.epochs):
         'epoch_mean_dice': mean_dice_class_scores.mean().item(),
     })
 
+    # Update validation metrics CSV
     pd.DataFrame(val_metrics).to_csv(val_csv_dir)
 
+    # Save model state at the end of each epoch
     torch.save(model.state_dict(), f'{args.output_dir}/epoch_{epoch}.pth')
 
+    # Step the learning rate scheduler
     scheduler.step()
