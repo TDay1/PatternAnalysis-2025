@@ -22,7 +22,7 @@ The aim of this project is to adapt the "Improved U-Net" architecture [1] to seg
 
 
 ## Dataset
-As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11,460, 660, and 540 respectively. 
+As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11,460, 660, and 540 respectively. These are these default splits of the HipMRI dataset. Using these default splits should improve the reproducibility of the training as well a fulfil the original brief of project 3 which specifies that the test split of the HipMRI dataset must achieve over 0.75 minimum per-class DICE.
 
 | Split    | Number of samples | Purpose                                                                          |
 |----------|:-----------------:|----------------------------------------------------------------------------------|
@@ -44,6 +44,14 @@ In addition to the 12,660 MRI, the dataset includes scan images are correspondin
 | 5        | Prostate   | <img src="./images/readme-ground-truth-class-5.png" width="200"> |
 
 *Figure 2: A table demonstrating the classes from the HipMRI dataset [2]. Classes 0, 1, 2, 3, and 5 example taken from train image 567, class 4 example taken from train image 582*
+
+#### Dataset processing
+The HipMRI dataset was given in the form of several directories containing gzipped Nifti format files. These files aren't immeadiatlet usable, and thus required pre-processing. The processing steps applied to them are as follows:
+1. File decompressed and loaded into numpy ndarrays. (using the task sheet provided code from appendix B).
+2. If the Nifti file contained an image slice, the values were z-score normalised (using the task sheet provided code from appendix B).
+3. The images and segmentations were then scaled to a uniform resolution of 256x128.
+4. Data augmentations are applied (only on train dataset images).
+5. The segmentation masks are one-hot encoded.
 
 ## Improved U-Net
 
@@ -114,7 +122,7 @@ Improved U-Net replaces this loss function with multiclass Dice loss. This loss 
 #### Original Training Setup
 In the Improved U-Net paper, the authors describe the following training setup:
 - Batch size 2
-- an initial learning rate of $5 \times 10^{-4}$, with exponential decay following the schedule $lr_{init} \cdot 0.985^{epoch}$
+- an initial learning rate of $5 \times 10^{-4}$, with exponential decay following the schedule $\text{lr}_{init} \cdot 0.985^{\text{epoch}}$
 - weight decay of $10^{-5}$
 - Adam optimiser
 - Extensive Augmentations
@@ -143,7 +151,6 @@ While the justification for the extremely low batch size of two is not explicitl
 Additionally, when batch size is changed, the optimal learning rate often changes too. In the paper, a conservative initial learning rate of  $5 \times 10^{-4}$ is used. This would likely be unsuitable for an increased batch size.
 
 Therefore, an experiment was conducted wherein the batch size and learning rate space was grid searched, in order to find the optimal combination. Exponentially increasing batch sizes were tested from 8 to 128. For each batch size, a range of initial learning rates were tested from 0.0001 to 0.02. The results of this parameter search are shown below in figure 7.
-
 
 <p align="center">
     <img src="./images/param-search.png" width="1200">
