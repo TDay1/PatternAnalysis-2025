@@ -3,10 +3,26 @@ import torch.nn as nn
 from torchvision.transforms import v2
 
 class DiceLoss(nn.Module):
+    """
+    Implementation of the multiclass DICE loss function from the improved U-Net
+    paper [1].
+    """
     def __init__(self):
+        """
+        Instanciates DiceLoss
+        returns:
+            DiceLoss
+        """
         super().__init__()
 
     def forward(self, u, v):
+        """
+        Calculates Mutliclass Dice loss for a given batch
+        args:
+            u: The output of the network
+            v: The one-hot encoded ground truth segmentations
+        """
+
         # From the paper:
         # - "u is the softmax output of the network"
         # - "v is a one hot encoding of the ground truth segmentation map"
@@ -33,6 +49,12 @@ class DiceLoss(nn.Module):
     
 
 def per_class_score_dice(u, v):
+    """
+    Calculate the dice score per-class and per-image.
+    args:
+        u: The output of the network
+        v: The one-hot encoded ground truth segmentations
+    """
     classes = u.shape[1]
     
     u = torch.argmax(u, dim=1)
@@ -64,16 +86,18 @@ def per_class_score_dice(u, v):
     return dice_scores
 
 def build_transforms():
-    # Augmentations based on those described in the paper.
-    # Note: They don't give parameters for the augments they used, so I used
-    # """"visual analysis"""" to determine reasonable ones
-    # Also note: The original paper is for 3D data and we are working with 2D
-    # data, so there are minor differences
+    """
+    Builds the data augmentations applied during training.
+    """
 
     transforms = v2.Compose([
-        # Geometry-based transforms
-        v2.RandomVerticalFlip(p=0.5), # since the images are from the top looking down, vertical flip makes more sense than horizontal. (because the body is symmetric on the horizontal axis)
-        v2.ElasticTransform(alpha=75.0, sigma=10.0), # Values of 75 and 10 were obtained visually. More than 100 started to look wacky
+        # since the images are from the top looking down, vertical flip makes
+        # more sense than horizontal. (because the body is symmetric on the
+        # horizontal axis)
+        v2.RandomVerticalFlip(p=0.5),
+        # Values of 75 and 10 were obtained visually. More than 100 started to
+        # look wacky
+        v2.ElasticTransform(alpha=75.0, sigma=10.0),
         v2.RandomRotation(10),
         v2.RandomAffine(degrees=0, scale=(0.9, 1.1)),
     ])
