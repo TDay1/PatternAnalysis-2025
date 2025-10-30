@@ -14,6 +14,8 @@ The aim of this project is to adapt the "Improved U-Net" architecture [CITE] to 
 1. [Table of Contents](#table-of-contents)
 2. [Dataset](#Dataset)
 3. [Introduction to Improved U-Net](#improved-u-net)
+4. [Training Setup](#Training-Setup)
+4. [Training](#Training)
 
 
 ## Dataset
@@ -104,7 +106,7 @@ Improved U-Net replaces this loss function with multiclass Dice loss. This loss 
     <em>Figure 6: The multiclass DICE loss used in Improved U-Net</em>
 </p>
 
-## Training
+## Training Setup
   
 #### Original Training Setup
 In the Improved U-Net paper, the authors describe the following training setup:
@@ -149,3 +151,48 @@ Therefore, an experiment was conducted wherein the batch size and learning rate 
 
 As shown in figure 7, it can be observed that a batch size of 64 combined with learning a learning rate of 0.002 resulted in the highest mean DICE score on the validation dataset. The metric by which project success is measured is having a minimum DICE score across all classes of at least 0.75. Therefore, another logical metric would be the best validation DICE on the most difficult class, the prostate. The second table in figure 7 indicates that the batch size of 64 combined with the learning rate of 0.002 also performs best for this metric.
 
+## Training
+Based on the findings of the hyperparameter search, an extended training run was performed with the following parameters:
+
+| Parameter     | Value                                     |
+| ------------- | ----------------------------------------- |
+| Batch size    | 64                                        |
+| Learning rate | 0.002                                     |
+| Augmentations | As described in the augmentations section |
+| Weight decay  | $10^{-5}$                                 |
+| epochs        | 35                                        |
+
+*Figure 8: Training run parameters*
+
+Throughout training, the loss value for both the training and validation datasets was recorded. These results are presented below in Figure 9:
+
+<p align="center">
+    <img src="./images/training-loss.png" width="1200">
+</p>
+<p align="center">
+    <em>Figure 9: Plots of the training loss measured per-batch (left) and the mean validation loss per epoch (right).</em>
+</p>
+ 
+
+Similarly, the DICE score for both the training and validation datasets were ecorded throughout training:
+
+ <p align="center">
+    <img src="./images/training-dice.png" width="1200">
+</p>
+<p align="center">
+    <em>Figure 10: Plots of the training DICE measured per-batch (left) and the mean validation DICE per epoch (right.)</em>
+</p>
+
+Finally, since the key metric for this project is achieving a minimum DICE score of 0.75 on all labels, the DICE score for each of the 6 classes was recorded throughout training. This is shown below in Figure 11:
+
+ <p align="center">
+    <img src="./images/training-class-dice.png" width="1200">
+</p>
+<p align="center">
+    <em>Figure 11: Plots of the DICE mean score per class throughout the training run on the test and validation datasets.</em>
+</p>
+
+#### Analysis of Training
+When observing the loss curves (Figure 9) and the accuracy curves (Figure 10) a peculiar artefact can be seen around the 500 batches mark. The loss appears to plateau before rapidly descending again. This artefact can be explained by the per-class DICE scores (Figure 11). When observing these DICE score curves, the first 3 classes (background, body, and bones) dramatically increase in accuracy very quickly, with the rate of improvement already beginning to plateau by the 500th batch. The latter 3 classes (bladder, rectum, and prostate), on the other hand, do not see any improvements until around the 500th epoch, at which point their accuracy improves significantly. Therefore,this artefact in the loss and accuracy curves can be explained by the "easier" larger classes being learnt before the "harder" more intricate classes.
+
+Other than this artefact, the loss curves appear typical for a convolutional neural network, with the training loss eventually plateauing and the validation accuracy close but ever so slightly worse the train accuracy.
