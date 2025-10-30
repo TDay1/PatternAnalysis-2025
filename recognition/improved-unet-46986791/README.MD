@@ -238,6 +238,18 @@ To further confirm the accuracy of the model, example segmentations were predict
 
 ## Running
 
+#### File Structure
+The following are the purposes of the important files in the repository:
+| File               | Purpose                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| **dataset.py**     | Contains the code that constructs the Pytorch dataset from the raw HipMRI dataset files.                                       |
+| **grid_search.py** | A lightweight python script that can be run to conduct a grid search across different model parameters.                        |
+| **module.py**      | Contains the modules/classes that are used to construct the model object. E.g. the `ImprovedUNet` and `ContextModule` classes. |
+| **predict.py**     | A script that, when run, can use given model weights to make a prediction.                                                     |
+| **train.py**       | A script that trains the model.                                                                                                |
+| **utils.py**       | Arbitrary utility functions called by other scripts in the repository. E.g. Dice loss, Dice score, dataset augmentations.      |
+
+
 #### Dependencies
 This project depends on the following python libraries:
 ```
