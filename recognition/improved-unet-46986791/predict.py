@@ -44,7 +44,7 @@ for i in range(args.count):
     axes[i, 1].set_title("Ground Truth\nSegmentation")
     axes[i, 1].axis('off')
 
-    axes[i, 2].imshow(predictions[i])
+    axes[i, 2].imshow(predictions[i], vmin=0, vmax=5)
     axes[i, 2].set_title("Predicted\nSegmentation")
     axes[i, 2].axis('off')
 
