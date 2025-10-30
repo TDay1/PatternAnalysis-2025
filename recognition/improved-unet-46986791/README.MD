@@ -59,11 +59,11 @@ In 2015, Ronneberger et al. [3] published "U-Net: Convolutional Networks for Bio
     <em>Figure 3: The original U-Net architecture. Diagram from the original paper [3]</em>
 </p>
 
-The original U-Net's encoder consisted 5 levels, each using two 3x3 convolutions with an ReLU activation function. The decoder consisted of the same architecture, except it was mirrored, increasing the spatial feature using up-convolutions (transposed convolutions) and it also accepted the input from the skip connections at each level. 
+The original U-Net's encoder consisted of 5 levels, each using two 3x3 convolutions with an ReLU activation function. The decoder consisted of the same architecture, except it was mirrored, increasing the spatial features using up-convolutions (transposed convolutions) and it also accepted the input from the skip connections at each level. 
 
 ### Improved U-Net Architecture
 
-In 2018, Isensee et al. release an "Improved U-Net" paper [1], that build upon the work on Renneberger at al. to create a U-Net-like network that could operate on three-dimensional data and achieve improved state of the art accuracy. While the Improved U-Net paper was originally intended for three-dimensional data, as per the task description (project 3) this report will adapt it for two-dimensional data. Therefore, the following description of the architecture will be for a two-dimensional variation of the Improved U-Net paper, rather than the original three-dimensional architecture.
+In 2018, Isensee et al. released an "Improved U-Net" paper [1], that built upon the work on Renneberger at al. to create a U-Net-like network that could operate on three-dimensional data and achieve improved state of the art accuracy. While the Improved U-Net paper was originally intended for three-dimensional data, as per the task description (project 3) this report will adapt it for two-dimensional data. Therefore, the following description of the architecture will be for a two-dimensional variation of the Improved U-Net paper, rather than the original three-dimensional architecture.
 
 <p align="center">
     <img src="./images/improved-unet-architecture.png" width="850">
@@ -74,7 +74,7 @@ In 2018, Isensee et al. release an "Improved U-Net" paper [1], that build upon t
 </p>
 
 #### Encoder
-The encoder section improved upon the original U-Net implementation by introducing context modules, which are based on pre-activation residual blocks introduced by by He et al. in "Identity Mappings in Deep Residual Networks" [4]. The Context modules consist of two layers containing instance normalisation, LeakyReLU, and a convolution, with a dropout layer in-between. The residual is taken at the start of the block and summed to the output of the two layers.
+The encoder section improved upon the original U-Net implementation by introducing context modules, which are based on pre-activation residual blocks introduced by He et al. in "Identity Mappings in Deep Residual Networks" [4]. The Context modules consist of two layers containing instance normalisation, LeakyReLU, and a convolution, with a dropout layer in-between. The residual is taken at the start of the block and summed to the output of the two layers.
 
 
 <p align="center">
@@ -90,15 +90,15 @@ With the exception of the final layer, the output of each context module is save
 
 
 #### Decoder
-The decoder section also improves on that of the original U-Net paper. First, localisation modules are introduced. These modules take the previous layer's features, concatenated with the features received from the skip connection, as input. Then, it feeds this input through a 3x3 convolution followed by a 1x1 convolution that halfs the number of features.
+The decoder section also improves on that of the original U-Net paper. First, localisation modules are introduced. These modules take the previous layer's features, concatenated with the features received from the skip connection, as input. Then, it feeds this input through a 3x3 convolution followed by a 1x1 convolution that halves the number of features.
 
-The next component in the decoder is the upsampling module. This module aims to reduce the checkerboard artifacts often introduced by upscaling with transposed convolutions, It achieves this by simply upscaling the input by repeating each feature twice, before appying a stanfard convolution and activation function. 
+The next component in the decoder is the upsampling module. This module aims to reduce the checkerboard artefacts often introduced by upscaling with transposed convolutions. It achieves this by simply upscaling the input by repeating each feature twice, before applying a standard convolution and activation function. 
 
 The final contribution in the decoder is the addition of "deep supervision" to the U-Net architecture. Broadly speaking, this mechanism works by passing the output of the top three levels in the decoder through segmentation layers, upscaling them to the same resolution, and then summing them, giving the final segmented output.
 
 
 #### Loss function
-The original U-Net paper used a weighted cross-entropy loss function. They rationale behind this loss function was that the weights could be used to weight underrepresented classes higher, thereby balancing the loss from the different classes.
+The original U-Net paper used a weighted cross-entropy loss function. The rationale behind this loss function was that the weights could be used to weight underrepresented classes higher, thereby balancing the loss from the different classes.
 
 Improved U-Net replaces this loss function with multiclass Dice loss. This loss function was chosen to address the high degree of class imbalance often observed in medical datasets. Because this loss function computes the overlap on a per-class basis before then averaging, all classes are equally weighted, thereby solving this issue.
 
