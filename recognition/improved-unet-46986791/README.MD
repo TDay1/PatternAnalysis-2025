@@ -15,7 +15,8 @@ The aim of this project is to adapt the "Improved U-Net" architecture [CITE] to 
 2. [Dataset](#Dataset)
 3. [Introduction to Improved U-Net](#improved-u-net)
 4. [Training Setup](#Training-Setup)
-4. [Training](#Training)
+5. [Training](#Training)
+6. [Results](#Results)
 
 
 ## Dataset
@@ -161,6 +162,7 @@ Based on the findings of the hyperparameter search, an extended training run was
 | Augmentations | As described in the augmentations section |
 | Weight decay  | $10^{-5}$                                 |
 | epochs        | 35                                        |
+| GPU           | NVIDIA GeForce RTX 4080                   |
 
 *Figure 8: Training run parameters*
 
@@ -196,3 +198,37 @@ Finally, since the key metric for this project is achieving a minimum DICE score
 When observing the loss curves (Figure 9) and the accuracy curves (Figure 10) a peculiar artefact can be seen around the 500 batches mark. The loss appears to plateau before rapidly descending again. This artefact can be explained by the per-class DICE scores (Figure 11). When observing these DICE score curves, the first 3 classes (background, body, and bones) dramatically increase in accuracy very quickly, with the rate of improvement already beginning to plateau by the 500th batch. The latter 3 classes (bladder, rectum, and prostate), on the other hand, do not see any improvements until around the 500th epoch, at which point their accuracy improves significantly. Therefore,this artefact in the loss and accuracy curves can be explained by the "easier" larger classes being learnt before the "harder" more intricate classes.
 
 Other than this artefact, the loss curves appear typical for a convolutional neural network, with the training loss eventually plateauing and the validation accuracy close but ever so slightly worse the train accuracy.
+
+## Results
+The benchmark for this project to be successful was for a model to be produced that could segment images in the test dataset with a minimum DICE score of at least 0.75. This model was able to fulfil this requirement, as shown by the test dataset results in figure 12:
+
+| Class    | Class 0 (Background) | Class 1 (Body) | Class 2 (Bones) | Class 3 (Bladder) | Class 4 (Rectum) | Class 5 (Prostate) |
+| -------- | -------------------- | -------------- | --------------- | ----------------- | ---------------- | ------------------ |
+| **DICE** | 0.9689               | 0.9774         | 0.9183          | 0.9436            | 0.8060           | 0.7714             |
+
+*Figure 12: The per-class DICE scores on the test dataset*
+
+To further confirm the accuracy of the model, example segmentations were predicted on the test dataset, shown below in figures 13 and 14.
+
+<p align="center">
+    <img src="./images/segmentation_pred_1.png">
+</p>
+<p align="center">
+    <img src="./images/segmentation_pred_2.png">
+
+</p>
+<p align="center">
+    <em>Figure 13: Four random sample predictions from the network (right) compared against the input (left) and the ground truth (centre).</em>
+</p>
+
+
+<p align="center">
+    <img src="./images/overlay_pred_1.png">
+</p>
+<p align="center">
+    <img src="./images/overlay_pred_2.png">
+
+</p>
+<p align="center">
+    <em>Figure 14: The four random sample predictions from figure 13, overlaid on top of the input image. Ground truth is on the left, while prediction is on the right</em>
+</p>
