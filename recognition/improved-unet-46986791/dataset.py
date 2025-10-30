@@ -79,15 +79,44 @@ def load_data_2D(imageNames, normImage=False, categorical=False , dtype=np.float
     
 
 class HipMRIDataset(Dataset):
+    """
+    Implementation of the HipMRI dataset [2] as a Pytorch Dataset.
+    It returns 2D greyscale MRI scan images and the corresponding one-hot encoded 
+    segmentation masks
+    """
     def __init__(self, img_dir, seg_dir, transforms=None):
+        """
+        Constructs a HipMRIDataset object.
+        Args:
+            img_dir: The directory containing the Nifti files containing the 
+                input images
+            seg_dir: The directory containing the Nifti files containing the
+                index-encoded ground truth segmentations
+            transforms (optional): The transforms in TorchVision Transforms V2
+                format to apply to the images and masks.
+        """
         self.img_files = sorted(glob.glob(os.path.join(img_dir, "*.nii.gz")))
         self.seg_files = sorted(glob.glob(os.path.join(seg_dir, "*.nii.gz")))
         self.transforms = transforms
 
     def __len__(self):
+        """
+        Returns the number of examples in the dataset.
+        """
         return len(self.img_files)
 
     def __getitem__(self, idx):
+        """
+        Load, process and return an example from the dataset at a given index.
+        Args:
+            idx: The index of the image and segmentation pair
+
+        returns:
+            A tuple where the first element is the processed image and the second
+            element is the processed, one-hot encoded segmentation mask
+        """
+
+        # Load the files from disk
         img = load_data_2D([self.img_files[idx]] , normImage = True , categorical = False)
         seg = load_data_2D([self.seg_files[idx]], normImage = False , categorical = False)
 
@@ -102,15 +131,20 @@ class HipMRIDataset(Dataset):
         x = img[0, None, :, :]
         y = seg[0, None, :, :]
 
+        # convert to pytorch
         x = torch.from_numpy(x).float()
         y = torch.from_numpy(y).long()
 
+        # Assign correct types for augmentations
         x = tv_tensors.Image(x)
         y = tv_tensors.Mask(y)
 
+        # apply augmentations
         if self.transforms is not None:
             x, y = self.transforms(x, y)
         
+        # one-hot encode augmented masks
         y_onehot = torch.nn.functional.one_hot(y[0], num_classes=6)
         y_onehot = y_onehot.permute(2, 0, 1).float()
+
         return x, y_onehot
