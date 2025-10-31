@@ -24,7 +24,11 @@ parser.add_argument("-lrd", "--learning-rate-decay-gamma", default=0.985, type=f
 parser.add_argument("-bs", "--batch-size", default=32, type=int)
 parser.add_argument("-o", "--output-dir", default="./checkpoints", type=str)
 parser.add_argument("-d", "--dataset-dir", default="./data/keras_slices_data", type=str)
-parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu", type=str)
+parser.add_argument("--device",
+                    default="cuda" if torch.cuda.is_available()
+                    else "mps" if torch.backends.mps.is_available()
+                    else "cpu",
+                    type=str)
 args = parser.parse_args()
 
 # Ensure the output directory exists
@@ -32,16 +36,40 @@ os.makedirs(args.output_dir, exist_ok=True)
 
 # Build datasets + loaders
 transforms = build_transforms()
-train_ds = HipMRIDataset(f'{args.dataset_dir}/keras_slices_train', f'{args.dataset_dir}/keras_slices_seg_train', transforms=transforms)
-train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=12 if args.device == "cuda" else 0, pin_memory=(args.device == "cuda"))
+train_ds = HipMRIDataset(
+        f'{args.dataset_dir}/keras_slices_train',
+        f'{args.dataset_dir}/keras_slices_seg_train',
+        transforms=transforms
+    )
+train_loader = DataLoader(
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=12 if args.device == "cuda"
+        else 0,
+        pin_memory=(args.device == "cuda")
+    )
 
-val_ds = HipMRIDataset(f'{args.dataset_dir}/keras_slices_validate', f'{args.dataset_dir}/keras_slices_seg_validate')
-val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False,  num_workers=4 if args.device == "cuda" else 0, pin_memory=(args.device == "cuda"))
+val_ds = HipMRIDataset(
+        f'{args.dataset_dir}/keras_slices_validate',
+        f'{args.dataset_dir}/keras_slices_seg_validate'
+    )
+val_loader = DataLoader(
+        val_ds,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=4 if args.device == "cuda"
+        else 0,
+        pin_memory=(args.device == "cuda"))
 
 model = ImprovedUNet().to(args.device)
 
 loss_fn = DiceLoss()
-optimiser = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-5)
+optimiser = torch.optim.Adam(
+        model.parameters(),
+        lr=args.learning_rate,
+        weight_decay=1e-5
+    )
 scheduler = ExponentialLR(optimiser, gamma=args.learning_rate_decay_gamma)
 
 # Setup performance logging
@@ -54,7 +82,7 @@ for epoch in range(args.epochs):
     print(f"======== Epoch {epoch}/{args.epochs} ======")
 
     print(f"Training...")
-    loading_bar = tqdm(train_loader)
+    loading_bar = tqdm(val_loader)
 
     train_loss = 0.0
     loss_history = []
@@ -80,7 +108,13 @@ for epoch in range(args.epochs):
         class_dice = per_class_score_dice(outputs, segs)
         dice_class_scores.append(class_dice)
 
-        loading_bar.set_postfix({"Total loss": f"{train_loss:.4f}", "mean loss": f"{(train_loss/len(loss_history)):.4f}", "Current LR": scheduler.get_last_lr()[0]})
+        loading_bar.set_postfix(
+            {
+                "Total loss": f"{train_loss:.4f}",
+                "mean loss": f"{(train_loss/len(loss_history)):.4f}",
+                "Current LR": scheduler.get_last_lr()[0]
+            }
+        )
 
         # log batch metrics
         train_metrics.append({
@@ -127,7 +161,12 @@ for epoch in range(args.epochs):
             loss_history.append(loss.item())
 
             dice_class_scores.append(per_class_score_dice(outputs, segs))
-            loading_bar.set_postfix({"Total loss": f"{val_loss:.4f}", "mean loss": f"{(val_loss/len(loss_history)):.4f}"})
+            loading_bar.set_postfix(
+                {
+                    "Total loss": f"{val_loss:.4f}",
+                    "mean loss": f"{(val_loss/len(loss_history)):.4f}"
+                }
+            )
 
     dice_class_scores = torch.stack(dice_class_scores)
     mean_dice_class_scores = torch.nanmean(dice_class_scores, dim=0)
