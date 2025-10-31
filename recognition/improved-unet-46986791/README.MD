@@ -1,4 +1,4 @@
-# Project 3
+# Improved U-Net
 
 **Author**: Thomas Day (46986791)
 
