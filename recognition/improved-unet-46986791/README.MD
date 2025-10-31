@@ -22,7 +22,7 @@ The aim of this project is to adapt the "Improved U-Net" architecture [1] to seg
 
 
 ## Dataset
-As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11,460, 660, and 540 respectively. These are these default splits of the HipMRI dataset. Using these default splits should improve the reproducibility of the training as well a fulfil the original brief of project 3 which specifies that the test split of the HipMRI dataset must achieve over 0.75 minimum per-class DICE.
+As specified by the task sheet, the Improved U-Net model will be trained on the HipMRI Study on prostate cancer [2] dataset. This dataset contains 12,660  greyscale images from MRI scans of the male human pelvis. These images were divided into train, validation, and test of sizes 11,460, 660, and 540 respectively. These are these default splits of the HipMRI dataset. It was decided to use the default splits that come with the dataset to improve the reproducibility of the training as well as fulfil the original brief of project 3, which specifies that the test split of the HipMRI dataset must achieve over 0.75 minimum per-class DICE.
 
 | Split    | Number of samples | Purpose                                                                          |
 |----------|:-----------------:|----------------------------------------------------------------------------------|
