@@ -82,7 +82,7 @@ for epoch in range(args.epochs):
     print(f"======== Epoch {epoch}/{args.epochs} ======")
 
     print(f"Training...")
-    loading_bar = tqdm(val_loader)
+    loading_bar = tqdm(train_loader)
 
     train_loss = 0.0
     loss_history = []
