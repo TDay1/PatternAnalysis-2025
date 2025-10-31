@@ -1,3 +1,11 @@
+"""
+This file contains the utility functions used by other files in the repository.
+Utility functions include the multiclass dice loss from the improved unet paper,
+a per-class dice score function, and a function that generates augmentations.
+
+Author: Tom Day
+"""
+
 import torch
 import torch.nn as nn
 from torchvision.transforms import v2

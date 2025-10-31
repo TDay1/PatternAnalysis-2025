@@ -1,3 +1,10 @@
+"""
+Main script for training the Improved U-Net model. Handles training and
+validation loops, logs metrics, save checkpoints.
+
+Author: Tom Day
+"""
+
 import torch
 from torch.utils.data import DataLoader
 from dataset import HipMRIDataset

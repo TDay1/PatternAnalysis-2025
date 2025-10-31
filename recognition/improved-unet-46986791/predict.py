@@ -1,3 +1,10 @@
+"""
+Loads a trained model to generate and save segmentation prediction of test set
+examples.
+
+Author: Tom Day
+"""
+
 from modules import ImprovedUNet
 import torch
 from dataset import HipMRIDataset

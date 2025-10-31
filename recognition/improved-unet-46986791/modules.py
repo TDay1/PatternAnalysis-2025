@@ -1,3 +1,11 @@
+"""
+This file defined the modules for the Improved U-Net model. It includes a main
+"ImprovedUNet" class that implements the full model, in addition to various
+submodules that comprise the functionality of this class.
+
+Author: Tom Day
+"""
+
 import torch
 import torch.nn as nn
         

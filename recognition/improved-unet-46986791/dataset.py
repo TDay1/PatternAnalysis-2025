@@ -1,3 +1,10 @@
+"""
+This file contains a Pytorch Dataset implementation of the HipMRI dataset and
+the associated helper functions (based on those given in the task sheet).
+
+Author: Tom Day
+"""
+
 import numpy as np
 import nibabel as nib
 import os

@@ -1,3 +1,10 @@
+"""
+This script performs a grid search over the batch size and learning rate hyper-
+parameters. The results are outputted in the ./search directory.
+
+Author: Tom Day
+"""
+
 import os
 import subprocess
 from itertools import product
