@@ -45,7 +45,7 @@ In addition to the 12,660 MRI, the dataset includes scan images are correspondin
 
 *Figure 2: A table demonstrating the classes from the HipMRI dataset [2]. Classes 0, 1, 2, 3, and 5 example taken from train image 567, class 4 example taken from train image 582*
 
-#### Dataset processing
+### Dataset processing
 The HipMRI dataset was given in the form of several directories containing gzipped Nifti format files. These files aren't immeadiatlet usable, and thus required pre-processing. The processing steps applied to them are as follows:
 1. File decompressed and loaded into numpy ndarrays. (using the task sheet provided code from appendix B).
 2. If the Nifti file contained an image slice, the values were z-score normalised (using the task sheet provided code from appendix B).
@@ -81,7 +81,7 @@ In 2018, Isensee et al. released an "Improved U-Net" paper [1], that built upon 
     <em>Figure 4: The Improved U-Net diagram, taken from the original paper [1]</em>
 </p>
 
-#### Encoder
+### Encoder
 The encoder section improved upon the original U-Net implementation by introducing context modules, which are based on pre-activation residual blocks introduced by He et al. in "Identity Mappings in Deep Residual Networks" [4]. The Context modules consist of two layers containing instance normalisation, LeakyReLU, and a convolution, with a dropout layer in-between. The residual is taken at the start of the block and summed to the output of the two layers.
 
 
@@ -97,7 +97,7 @@ The encoder section improved upon the original U-Net implementation by introduci
 With the exception of the final layer, the output of each context module is saved to later be passed to the decoder through a skip connection before finally being downscaled using a 3x3 convolution with a stride of 2.
 
 
-#### Decoder
+### Decoder
 The decoder section also improves on that of the original U-Net paper. First, localisation modules are introduced. These modules take the previous layer's features, concatenated with the features received from the skip connection, as input. Then, it feeds this input through a 3x3 convolution followed by a 1x1 convolution that halves the number of features.
 
 The next component in the decoder is the upsampling module. This module aims to reduce the checkerboard artefacts often introduced by upscaling with transposed convolutions. It achieves this by simply upscaling the input by repeating each feature twice, before applying a standard convolution and activation function. 
@@ -105,7 +105,7 @@ The next component in the decoder is the upsampling module. This module aims to 
 The final contribution in the decoder is the addition of "deep supervision" to the U-Net architecture. Broadly speaking, this mechanism works by passing the output of the top three levels in the decoder through segmentation layers, upscaling them to the same resolution, and then summing them, giving the final segmented output.
 
 
-#### Loss function
+### Loss function
 The original U-Net paper used a weighted cross-entropy loss function. The rationale behind this loss function was that the weights could be used to weight underrepresented classes higher, thereby balancing the loss from the different classes.
 
 Improved U-Net replaces this loss function with multiclass Dice loss. This loss function was chosen to address the high degree of class imbalance often observed in medical datasets. Because this loss function computes the overlap on a per-class basis before then averaging, all classes are equally weighted, thereby solving this issue.
@@ -119,7 +119,7 @@ Improved U-Net replaces this loss function with multiclass Dice loss. This loss 
 
 ## Training Setup
   
-#### Original Training Setup
+### Original Training Setup
 In the Improved U-Net paper, the authors describe the following training setup:
 - Batch size 2
 - an initial learning rate of $5 \times 10^{-4}$, with exponential decay following the schedule $\text{lr}_{init} \cdot 0.985^{\text{epoch}}$
@@ -129,7 +129,7 @@ In the Improved U-Net paper, the authors describe the following training setup:
 
 Our training implementations will need to make reasonable deviations from the paper's original setup. This change is required because this implementation is focusing on two-dimensional data and because significantly more powerful GPUs have become available since the paper was authored in 2018.
 
-#### Data augmentations
+### Data augmentations
 In the Improved U-Net paper [1] they made extensive use of augmentations applied on the fly during training. As such, in this implementation similar augmentations were used. The "transforms v2" API  within Pytorch TorchVision, as the transformations applied to the image and the segmentation mask must be the same, and the "transforms v2" API supports this use case. The following snippet shows the transforms used.
 
 ```py
@@ -145,7 +145,7 @@ The parameters of the transforms were not given in the paper, and as such had to
 
 One issue that presented itself with the augmentations was that applying the augmentations directly to the one-hot encoded masks led to an edge case where if an augmentation introduced additional background class (i.e. a rotation). It would not be counted in the background class of the mask. This was solved by only converting the segmentations masks to one-hot encoding after the augmentations were applied.
 
-#### Hyperparameter Tuning
+### Hyperparameter Tuning
 While the justification for the extremely low batch size of two is not explicitly stated in the Improved U-Net paper, it is implied to be due to VRAM constraints. Since both two-dimensional data is significantly more compact than three-dimensional data and since more powerful GPUs are available, it is logical to increase the original batch size from two to a larger number.
 
 Additionally, when batch size is changed, the optimal learning rate often changes too. In the paper, a conservative initial learning rate of  $5 \times 10^{-4}$ is used. This would likely be unsuitable for an increased batch size.
@@ -203,7 +203,7 @@ Finally, since the key metric for this project is achieving a minimum DICE score
     <em>Figure 11: Plots of the DICE mean score per class throughout the training run on the test and validation datasets.</em>
 </p>
 
-#### Analysis of Training
+### Analysis of Training
 When observing the loss curves (Figure 9) and the accuracy curves (Figure 10) a peculiar artefact can be seen around the 500 batches mark. The loss appears to plateau before rapidly descending again. This artefact can be explained by the per-class DICE scores (Figure 11). When observing these DICE score curves, the first 3 classes (background, body, and bones) dramatically increase in accuracy very quickly, with the rate of improvement already beginning to plateau by the 500th batch. The latter 3 classes (bladder, rectum, and prostate), on the other hand, do not see any improvements until around the 500th batch, at which point their accuracy improves significantly. Therefore,this artefact in the loss and accuracy curves can be explained by the "easier" larger classes being learnt before the "harder" more intricate classes.
 
 Other than this artefact, the loss curves appear typical for a convolutional neural network, with the training loss eventually plateauing and the validation accuracy close but ever so slightly worse than the train accuracy.
@@ -245,7 +245,7 @@ To further confirm the accuracy of the model, example segmentations were predict
 
 ## Running
 
-#### File Structure
+### File Structure
 The following are the purposes of the important files in the repository:
 | File               | Purpose                                                                                                                        |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -257,7 +257,7 @@ The following are the purposes of the important files in the repository:
 | **utils.py**       | Arbitrary utility functions called by other scripts in the repository. E.g. Dice loss, Dice score, dataset augmentations.      |
 
 
-#### Dependencies
+### Dependencies
 This project depends on the following python libraries:
 ```
 torch
@@ -275,7 +275,7 @@ The specific versions of the libraries and their dependencies used can be found 
 pip install -r requirements.txt
 ```
 
-#### Training
+### Training
 The `train.py` script is used to train the model. It can be called as follows:
 ```bash
 python train.py \
@@ -298,7 +298,7 @@ with the following command-line arguments:
 | -o        | --output-dir                | The directory to output training data to                 | No        |
 |           | --device                    | The accelerator to train with                            | No        |
 
-#### Inference
+### Inference
 The `predict.py` script can be used to generate sample predictions. It can be called as follows:
 ```bash
 python predict.py \
